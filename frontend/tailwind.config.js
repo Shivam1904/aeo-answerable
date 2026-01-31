@@ -14,6 +14,14 @@ export default {
             },
             backgroundSize: {
                 'dot': '24px 24px',
+            },
+            keyframes: {
+                shimmer: {
+                    '100%': { transform: 'translateX(100%)' },
+                }
+            },
+            animation: {
+                shimmer: 'shimmer 2s infinite',
             }
         },
     },
