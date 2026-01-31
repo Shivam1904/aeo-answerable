@@ -1,12 +1,24 @@
 import { useState } from 'react'
 import {
     Search, ArrowRight, Activity, Zap, Layers,
-    FileText, AlertTriangle,
-    ShieldCheck, Terminal, Bot, Sparkles
+    FileText, AlertTriangle, ChevronDown, ChevronRight,
+    ShieldCheck, Terminal, Bot, Sparkles, Check, X,
+    BarChart2, List, Hash, FileCode2, Clock, User, Link2
 } from 'lucide-react'
 
 
 // --- Types ---
+interface MetricResult {
+    metric: string
+    score: number
+    weight: number
+    [key: string]: any
+}
+
+interface MetricsData {
+    [key: string]: MetricResult
+}
+
 interface AuditResult {
     score: number
     h1_found?: boolean
@@ -23,6 +35,8 @@ interface ChunkData {
 interface PageData {
     url: string
     title: string
+    page_score?: number
+    metrics?: MetricsData
     audits: {
         structure: AuditResult
         clarity: AuditResult
@@ -41,6 +55,50 @@ interface ReportData {
         recall_at_5: number
         query_count: number
     }
+}
+
+// Metric categories for display
+const METRIC_CATEGORIES = {
+    structure: {
+        name: 'Structure & Efficiency',
+        icon: Layers,
+        metrics: ['dom_to_token_ratio', 'main_content_detectability', 'semantic_tree_depth', 'heading_hierarchy_validity']
+    },
+    content: {
+        name: 'Content Quality',
+        icon: FileText,
+        metrics: ['heading_predictive_power', 'liftable_units_density', 'answer_first_compliance', 'anaphora_resolution']
+    },
+    retrieval: {
+        name: 'Retrieval Readiness',
+        icon: BarChart2,
+        metrics: ['chunk_boundary_integrity', 'duplicate_boilerplate_rate']
+    },
+    schema: {
+        name: 'Schema & Trust',
+        icon: FileCode2,
+        metrics: ['entity_schema_mapping', 'schema_coverage_by_intent', 'schema_quality_relationships', 'citation_source_density', 'freshness_signal_strength', 'author_eeat_signals']
+    }
+}
+
+// Human-readable metric names
+const METRIC_LABELS: { [key: string]: string } = {
+    dom_to_token_ratio: 'DOM-to-Token Ratio',
+    main_content_detectability: 'Main Content Detectability',
+    semantic_tree_depth: 'Semantic Tree Depth',
+    heading_hierarchy_validity: 'Heading Hierarchy',
+    heading_predictive_power: 'Heading Predictive Power',
+    liftable_units_density: 'Liftable Units Density',
+    answer_first_compliance: 'Answer-First Compliance',
+    anaphora_resolution: 'Anaphora Resolution',
+    chunk_boundary_integrity: 'Chunk Boundary Integrity',
+    duplicate_boilerplate_rate: 'Duplicate/Boilerplate Rate',
+    entity_schema_mapping: 'Entity-Schema Mapping',
+    schema_coverage_by_intent: 'Schema Coverage by Intent',
+    schema_quality_relationships: 'Schema Quality & Relationships',
+    citation_source_density: 'Citation Source Density',
+    freshness_signal_strength: 'Freshness Signals',
+    author_eeat_signals: 'Author & E-E-A-T'
 }
 
 // --- Components ---
@@ -85,7 +143,7 @@ function Hero({ onSubmit }: { onSubmit: (url: string, mode: string) => void }) {
             <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-8">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-indigo-400 mb-4 animate-fade-in">
                     <Terminal className="w-3 h-3" />
-                    <span>v0.1.0 release</span>
+                    <span>v0.2.0 • 22 AEO Metrics</span>
                 </div>
 
                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-tight">
@@ -168,11 +226,159 @@ function Hero({ onSubmit }: { onSubmit: (url: string, mode: string) => void }) {
     )
 }
 
-function StatCard({ label, value, subtext }: { label: string, value: string | number, subtext?: string }) {
+function ScoreBar({ score, size = 'md' }: { score: number, size?: 'sm' | 'md' }) {
+    const pct = Math.round(score * 100)
+    const color = pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+    const height = size === 'sm' ? 'h-1' : 'h-1.5'
+
+    return (
+        <div className={`w-full bg-white/10 rounded-full overflow-hidden ${height}`}>
+            <div className={`${height} ${color}`} style={{ width: `${pct}%` }}></div>
+        </div>
+    )
+}
+
+function MetricRow({ name, data }: { name: string, data: MetricResult }) {
+    const [expanded, setExpanded] = useState(false)
+    const score = Math.round(data.score * 100)
+    const weight = Math.round(data.weight * 100)
+
+    const scoreColor = score >= 80 ? 'text-green-400' : score >= 50 ? 'text-yellow-400' : 'text-red-400'
+
+    return (
+        <div className="border-b border-white/5 last:border-b-0">
+            <button
+                onClick={() => setExpanded(!expanded)}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/[0.02] transition-colors"
+            >
+                <div className="flex items-center gap-3">
+                    {expanded ? <ChevronDown className="w-3 h-3 text-gray-500" /> : <ChevronRight className="w-3 h-3 text-gray-500" />}
+                    <span className="text-gray-300 text-sm">{METRIC_LABELS[name] || name}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                    <span className="text-xs text-gray-600">{weight}% weight</span>
+                    <span className={`text-sm font-bold ${scoreColor}`}>{score}%</span>
+                </div>
+            </button>
+            {expanded && (
+                <div className="px-4 pb-3 pl-10">
+                    <div className="text-xs text-gray-500 space-y-1 bg-white/[0.02] rounded p-3">
+                        {Object.entries(data).map(([key, value]) => {
+                            if (['metric', 'score', 'weight'].includes(key)) return null
+                            if (typeof value === 'object') return null
+                            return (
+                                <div key={key} className="flex justify-between">
+                                    <span className="text-gray-400">{key.replace(/_/g, ' ')}:</span>
+                                    <span className="text-gray-300">{typeof value === 'number' ? value.toFixed(3) : String(value)}</span>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+function MetricCategory({ category, metrics }: { category: typeof METRIC_CATEGORIES.structure, metrics?: MetricsData }) {
+    const [expanded, setExpanded] = useState(true)
+
+    const categoryMetrics = category.metrics
+        .map(name => metrics?.[name] ? { name, data: metrics[name] } : null)
+        .filter(Boolean) as { name: string, data: MetricResult }[]
+
+    if (categoryMetrics.length === 0) return null
+
+    const avgScore = categoryMetrics.reduce((acc, m) => acc + m.data.score, 0) / categoryMetrics.length
+    const CategoryIcon = category.icon
+
+    return (
+        <div className="glass-panel overflow-hidden">
+            <button
+                onClick={() => setExpanded(!expanded)}
+                className="w-full px-4 py-3 flex items-center justify-between border-b border-white/5 hover:bg-white/[0.02] transition-colors"
+            >
+                <div className="flex items-center gap-3">
+                    <CategoryIcon className="w-4 h-4 text-indigo-400" />
+                    <span className="text-white font-medium text-sm">{category.name}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <span className={`text-sm font-bold ${avgScore >= 0.8 ? 'text-green-400' : avgScore >= 0.5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {Math.round(avgScore * 100)}%
+                    </span>
+                    {expanded ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronRight className="w-4 h-4 text-gray-500" />}
+                </div>
+            </button>
+            {expanded && (
+                <div>
+                    {categoryMetrics.map(({ name, data }) => (
+                        <MetricRow key={name} name={name} data={data} />
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
+function PageDetail({ page, onClose }: { page: PageData, onClose: () => void }) {
+    const score = page.page_score ? Math.round(page.page_score * 100) : Math.round(((page.audits.structure.score + page.audits.clarity.score) / 2) * 100)
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
+            <div className="glass-panel max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between shrink-0">
+                    <div>
+                        <h2 className="text-white font-medium">{page.title || 'Untitled Page'}</h2>
+                        <p className="text-xs text-gray-500 font-mono">{page.url}</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                        <X className="w-4 h-4 text-gray-400" />
+                    </button>
+                </div>
+
+                {/* Score Header */}
+                <div className="px-6 py-6 border-b border-white/5 bg-gradient-to-r from-indigo-900/10 to-transparent shrink-0">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-indigo-300 text-sm font-medium mb-1 flex items-center gap-2">
+                                <Sparkles className="w-4 h-4" /> Page AEO Score
+                            </p>
+                            <div className="text-5xl font-black text-white tracking-tighter">{score}</div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-gray-400 text-xs mb-2">{page.metrics ? Object.keys(page.metrics).length : 0} metrics analyzed</p>
+                            <ScoreBar score={score / 100} size="md" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Metrics */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                    {page.metrics ? (
+                        Object.entries(METRIC_CATEGORIES).map(([key, category]) => (
+                            <MetricCategory key={key} category={category} metrics={page.metrics} />
+                        ))
+                    ) : (
+                        <div className="text-center py-12 text-gray-500">
+                            <p>No detailed metrics available for this page.</p>
+                            <p className="text-xs mt-2">This page was scanned with an older version.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function StatCard({ label, value, subtext, icon: Icon }: { label: string, value: string | number, subtext?: string, icon?: any }) {
     return (
         <div className="glass-panel p-6 flex flex-col justify-between h-full">
             <div>
-                <p className="text-gray-500 text-sm font-medium mb-1">{label}</p>
+                <p className="text-gray-500 text-sm font-medium mb-1 flex items-center gap-2">
+                    {Icon && <Icon className="w-3 h-3" />}
+                    {label}
+                </p>
                 <div className="text-4xl font-bold text-white tracking-tight">{value}</div>
             </div>
             {subtext && (
@@ -188,10 +394,36 @@ function StatCard({ label, value, subtext }: { label: string, value: string | nu
 }
 
 function Dashboard({ data, onReset }: { data: ReportData, onReset: () => void }) {
-    const avgStructure = Math.round(data.pages.reduce((acc, p) => acc + (p.audits.structure?.score || 0), 0) / (data.pages.length || 1) * 100)
-    const avgClarity = Math.round(data.pages.reduce((acc, p) => acc + (p.audits.clarity?.score || 0), 0) / (data.pages.length || 1) * 100)
-    const recall = Math.round((data.retrieval_stats?.recall_at_5 ?? 0) * 100)
-    const globalScore = Math.round((avgStructure + avgClarity + recall) / 3)
+    const [selectedPage, setSelectedPage] = useState<PageData | null>(null)
+
+    // Calculate scores from new metrics if available, fallback to legacy
+    const calculatePageScore = (page: PageData) => {
+        if (page.page_score) return page.page_score
+        return (page.audits.structure.score + page.audits.clarity.score) / 2
+    }
+
+    const avgScore = Math.round(data.pages.reduce((acc, p) => acc + calculatePageScore(p), 0) / (data.pages.length || 1) * 100)
+
+    // Group metrics by category for summary
+    const getAvgMetricScore = (metricName: string) => {
+        const scores = data.pages
+            .map(p => p.metrics?.[metricName]?.score)
+            .filter((s): s is number => s !== undefined)
+        return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
+    }
+
+    const structureHealth = Math.round(
+        (getAvgMetricScore('heading_hierarchy_validity') ||
+            data.pages.reduce((acc, p) => acc + (p.audits.structure?.score || 0), 0) / (data.pages.length || 1)) * 100
+    )
+
+    const contentClarity = Math.round(
+        (getAvgMetricScore('anaphora_resolution') ||
+            data.pages.reduce((acc, p) => acc + (p.audits.clarity?.score || 0), 0) / (data.pages.length || 1)) * 100
+    )
+
+    const schemaScore = Math.round(getAvgMetricScore('entity_schema_mapping') * 100) || 0
+
     const hostname = data.pages[0]?.url ? new URL(data.pages[0].url).hostname : 'Target'
 
     return (
@@ -208,7 +440,7 @@ function Dashboard({ data, onReset }: { data: ReportData, onReset: () => void })
                                 Report Ready
                             </span>
                         </div>
-                        <p className="text-gray-500 text-sm">Scan completed via {window.location.port ? `localhost:${window.location.port}` : 'CLI'}</p>
+                        <p className="text-gray-500 text-sm">{data.pages.length} pages analyzed • 22 AEO metrics</p>
                     </div>
                     <button onClick={onReset} className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors border border-white/5">
                         New Audit
@@ -224,14 +456,14 @@ function Dashboard({ data, onReset }: { data: ReportData, onReset: () => void })
                                 <p className="text-indigo-300 text-sm font-medium mb-2 flex items-center gap-2">
                                     <Sparkles className="w-4 h-4" /> AEO Score
                                 </p>
-                                <div className="text-6xl font-black text-white mb-2 tracking-tighter">{globalScore}</div>
-                                <p className="text-gray-400 text-xs">Composite readiness index for LLM retrieval.</p>
+                                <div className="text-6xl font-black text-white mb-2 tracking-tighter">{avgScore}</div>
+                                <p className="text-gray-400 text-xs">Composite readiness for AI retrieval & citation.</p>
                             </div>
                         </div>
                     </div>
-                    <StatCard label="Structure Health" value={`${avgStructure}%`} subtext="Hierarchy check" />
-                    <StatCard label="Content Clarity" value={`${avgClarity}%`} subtext="Pronoun density" />
-                    <StatCard label="Retrieval Recall" value={`${recall}%`} subtext="RAG Sim @ k=5" />
+                    <StatCard label="Structure Health" value={`${structureHealth}%`} subtext="Hierarchy + DOM" icon={Layers} />
+                    <StatCard label="Content Clarity" value={`${contentClarity}%`} subtext="Pronouns & chunks" icon={FileText} />
+                    <StatCard label="Schema Coverage" value={`${schemaScore}%`} subtext="Entity mapping" icon={FileCode2} />
                 </div>
 
                 {/* Main Content Area */}
@@ -246,9 +478,14 @@ function Dashboard({ data, onReset }: { data: ReportData, onReset: () => void })
                         </div>
                         <div className="divide-y divide-white/5">
                             {data.pages.map((p, i) => {
-                                const score = Math.round(((p.audits.structure.score + p.audits.clarity.score) / 2) * 100)
+                                const score = Math.round(calculatePageScore(p) * 100)
+                                const hasMetrics = !!p.metrics && Object.keys(p.metrics).length > 0
                                 return (
-                                    <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+                                    <div
+                                        key={i}
+                                        onClick={() => setSelectedPage(p)}
+                                        className="px-6 py-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group cursor-pointer"
+                                    >
                                         <div className="flex flex-col gap-1">
                                             <span className="text-gray-300 font-mono text-sm truncate max-w-md group-hover:text-white transition-colors">
                                                 {new URL(p.url).pathname || '/'}
@@ -256,6 +493,11 @@ function Dashboard({ data, onReset }: { data: ReportData, onReset: () => void })
                                             <span className="text-xs text-gray-600">{p.title || 'No Title'}</span>
                                         </div>
                                         <div className="flex items-center gap-4">
+                                            {hasMetrics && (
+                                                <span className="text-xs text-indigo-400/60 bg-indigo-500/10 px-2 py-0.5 rounded">
+                                                    {Object.keys(p.metrics!).length} metrics
+                                                </span>
+                                            )}
                                             <div className="text-right">
                                                 <div className={`text-sm font-bold ${score > 80 ? 'text-green-400' : score > 50 ? 'text-yellow-400' : 'text-red-400'}`}>
                                                     {score}%
@@ -273,44 +515,50 @@ function Dashboard({ data, onReset }: { data: ReportData, onReset: () => void })
 
                     {/* Sidebar / Insights */}
                     <div className="space-y-6">
+                        {/* Quick Metrics Summary */}
                         <div className="glass-panel p-6">
                             <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-                                <Activity className="w-4 h-4 text-indigo-400" /> Retrieval Health
+                                <Activity className="w-4 h-4 text-indigo-400" /> Key Findings
                             </h3>
                             <div className="space-y-4">
-                                <div className="space-y-1">
-                                    <div className="flex justify-between text-xs text-gray-400">
-                                        <span>Semantic Density</span>
-                                        <span>High</span>
+                                {[
+                                    { label: 'DOM Efficiency', score: getAvgMetricScore('dom_to_token_ratio'), icon: Hash },
+                                    { label: 'Main Content', score: getAvgMetricScore('main_content_detectability'), icon: FileText },
+                                    { label: 'Heading Quality', score: getAvgMetricScore('heading_predictive_power'), icon: List },
+                                    { label: 'Chunk Integrity', score: getAvgMetricScore('chunk_boundary_integrity'), icon: Layers },
+                                ].map((item, i) => (
+                                    <div key={i} className="space-y-1">
+                                        <div className="flex justify-between text-xs text-gray-400">
+                                            <span className="flex items-center gap-1">
+                                                <item.icon className="w-3 h-3" /> {item.label}
+                                            </span>
+                                            <span>{Math.round(item.score * 100)}%</span>
+                                        </div>
+                                        <ScoreBar score={item.score} size="sm" />
                                     </div>
-                                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                                        <div className="h-full bg-indigo-500/80 w-[85%]"></div>
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="flex justify-between text-xs text-gray-400">
-                                        <span>Token Efficiency</span>
-                                        <span>Medium</span>
-                                    </div>
-                                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                                        <div className="h-full bg-indigo-500/40 w-[60%]"></div>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-gray-500 mt-4 leading-relaxed">
-                                    Your content chunks are generally well-structured for vector retrieval, but some ambiguity remains in pronoun usage.
-                                </p>
+                                ))}
                             </div>
                         </div>
 
+                        {/* Pro Tips */}
                         <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5">
                             <h4 className="text-indigo-300 text-sm font-medium mb-2">Pro Tip</h4>
                             <p className="text-xs text-indigo-200/60 leading-relaxed">
-                                Add more specific entities (names, dates, prices) to improve "Faithfulness" scores in LLM citation.
+                                {getAvgMetricScore('entity_schema_mapping') < 0.5
+                                    ? 'Add JSON-LD schema markup to improve entity-schema mapping and help AI systems verify your facts.'
+                                    : getAvgMetricScore('answer_first_compliance') < 0.5
+                                        ? 'Start sections with direct answers instead of introductory fluff for better extractability.'
+                                        : 'Add more specific entities (names, dates, prices) to improve citation likelihood.'}
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Page Detail Modal */}
+            {selectedPage && (
+                <PageDetail page={selectedPage} onClose={() => setSelectedPage(null)} />
+            )}
         </div>
     )
 }
@@ -325,8 +573,8 @@ function LoadingView() {
                 </div>
             </div>
             <div className="text-center space-y-2">
-                <h2 className="text-xl font-medium text-white">Auditing Content Graph</h2>
-                <p className="text-gray-500 text-sm">Simulating retrieval queries...</p>
+                <h2 className="text-xl font-medium text-white">Auditing with 22 AEO Metrics</h2>
+                <p className="text-gray-500 text-sm">Analyzing structure, content, schema, and retrieval...</p>
             </div>
         </div>
     )

@@ -3,65 +3,65 @@ Content Extractor Module.
 
 This module provides functionality to parse raw HTML and transform it into
 "Agent-Readable" text. It handles boilerplate removal, heading extraction,
-and semantic content cleaning.
+semantic content cleaning, and AEO metrics computation.
 """
 import re
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 from bs4 import BeautifulSoup, Tag
 
-from .auditor import ContentAuditor
 from .chunker import ContentChunker
+from .metrics import compute_page_metrics
+from .metrics.utils.schema_parser import extract_json_ld
+
 
 def extract(html: str, url: str) -> Dict[str, Any]:
     """
     Main entry point to extract content from a raw HTML string.
 
     Args:
-        html (str): The raw HTML content of the page.
-        url (str): The URL of the page (used for metadata).
+        html: The raw HTML content of the page.
+        url: The URL of the page (used for metadata).
 
     Returns:
-        Dict[str, Any]: A dictionary containing the cleaned content and metadata.
-        Structure:
-        {
-            "url": str,
-            "title": str,
-            "description": str,
-            "headings": List[Dict],
-            "main_content": str,
-            "audits": Dict,
-            "chunks": Dict,
-            "metadata": Dict
-        }
+        Dictionary containing cleaned content, metrics, and metadata.
     """
-    soup = BeautifulSoup(html, 'html.parser')
+    # Parse HTML - keep a clean copy for metrics
+    soup = BeautifulSoup(html, "html.parser")
     
-    # Metadata extraction
-    title_tag = soup.find('title')
+    # Metadata extraction (before boilerplate removal)
+    title_tag = soup.find("title")
     title = title_tag.get_text().strip() if title_tag else "Untitled"
     
-    desc_tag = soup.find('meta', attrs={'name': 'description'})
-    description = desc_tag.get('content', '') if desc_tag else ""
+    desc_tag = soup.find("meta", attrs={"name": "description"})
+    description = desc_tag.get("content", "") if desc_tag else ""
 
-    # 1. Remove Boilerplate
-    _remove_boilerplate(soup)
+    # Extract JSON-LD before modification
+    json_ld = extract_json_ld(soup)
 
-    # 2. Extract Headings
-    headings = _extract_headings(soup)
+    # Create a copy for boilerplate removal
+    clean_soup = BeautifulSoup(html, "html.parser")
+    _remove_boilerplate(clean_soup)
 
-    # 3. Extract Main Content
-    main_content = _extract_main_content(soup)
+    # Extract Headings
+    headings = _extract_headings(clean_soup)
 
-    # 4. Run Audits
-    auditor = ContentAuditor()
-    structure_audit = auditor.audit_structure(soup)
-    clarity_audit = auditor.audit_clarity(main_content)
+    # Extract Main Content
+    main_content = _extract_main_content(clean_soup)
 
-    # 5. Run Chunking
+    # Run new AEO metrics (using original soup for full analysis)
+    metrics_result = compute_page_metrics(
+        html=html,
+        soup=soup,
+        extracted_text=main_content,
+        url=url,
+        json_ld=json_ld,
+    )
+
+    # Run Chunking
     chunker = ContentChunker()
-    semantic_chunks = chunker.chunk_semantic(soup)
+    semantic_chunks = chunker.chunk_semantic(clean_soup)
     sliding_chunks = chunker.chunk_sliding(main_content)
     chunk_delta = chunker.compare_strategies(semantic_chunks, sliding_chunks)
 
@@ -71,75 +71,106 @@ def extract(html: str, url: str) -> Dict[str, Any]:
         "description": description,
         "headings": headings,
         "main_content": main_content,
-        "audits": {
-            "structure": structure_audit,
-            "clarity": clarity_audit,
-        },
+        # New metrics structure
+        "metrics": metrics_result["metrics"],
+        "page_score": metrics_result["page_score"],
+        # Legacy audits for backward compatibility
+        "audits": _convert_metrics_to_legacy_audits(metrics_result["metrics"]),
         "chunks": {
             "semantic": semantic_chunks,
             "sliding": sliding_chunks,
-            "consistency_score": chunk_delta
+            "consistency_score": chunk_delta,
         },
         "metadata": {
             "word_count": len(main_content.split()),
             "extraction_method": "semantic",
-            "crawled_at": datetime.utcnow().isoformat()
-        }
+            "crawled_at": datetime.utcnow().isoformat(),
+        },
     }
+
+
+def _convert_metrics_to_legacy_audits(metrics: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Convert new metrics format to legacy audit format for backward compatibility.
+    
+    Args:
+        metrics: New metrics dictionary.
+        
+    Returns:
+        Legacy audits format.
+    """
+    structure_metric = metrics.get("heading_hierarchy_validity", {})
+    clarity_metric = metrics.get("anaphora_resolution", {})
+    
+    return {
+        "structure": {
+            "score": structure_metric.get("score", 0),
+            "h1_found": structure_metric.get("h1_count", 0) == 1,
+            "h1_count": structure_metric.get("h1_count", 0),
+            "skipped_levels": structure_metric.get("skipped_levels", []),
+        },
+        "clarity": {
+            "score": clarity_metric.get("score", 0),
+            "pronoun_density": clarity_metric.get("pronoun_density", 0),
+            "flags": [],
+        },
+    }
+
 
 def _remove_boilerplate(soup: BeautifulSoup) -> None:
     """
     Removes navigational elements, ads, and scripts from the DOM in-place.
     
     Args:
-        soup (BeautifulSoup): The parsed HTML object.
+        soup: The parsed HTML object.
     """
     # Tags to remove
-    for tag in soup(['script', 'style', 'noscript', 'iframe', 'svg', 'nav', 'header', 'footer', 'aside']):
+    for tag in soup(["script", "style", "noscript", "iframe", "svg", "nav", "header", "footer", "aside"]):
         tag.decompose()
     
     # Classes/IDs to remove using regex
     params = [
-        {'class': re.compile(r'sidebar|popup|modal|cookie|advertisement|ad-container')},
-        {'id': re.compile(r'sidebar|popup|modal')}
+        {"class": re.compile(r"sidebar|popup|modal|cookie|advertisement|ad-container")},
+        {"id": re.compile(r"sidebar|popup|modal")},
     ]
     for p in params:
-        for tag in soup.find_all(**p): # type: ignore
+        for tag in soup.find_all(**p):  # type: ignore
             tag.decompose()
+
 
 def _extract_headings(soup: BeautifulSoup) -> List[Dict[str, Any]]:
     """
     Extracts all H1-H6 headings to build a document skeleton.
 
     Args:
-        soup (BeautifulSoup): The clean HTML object.
+        soup: The clean HTML object.
 
     Returns:
-        List[Dict[str, Any]]: List of heading objects with text, level, and ID.
+        List of heading objects with text, level, and ID.
     """
     headings = []
-    for tag in soup.find_all(re.compile(r'^h[1-6]$')):
+    for tag in soup.find_all(re.compile(r"^h[1-6]$")):
         text = tag.get_text().strip()
         if text:
             headings.append({
                 "text": text,
-                "level": int(tag.name[1]), # type: ignore
-                "id": tag.get('id')
+                "level": int(tag.name[1]),  # type: ignore
+                "id": tag.get("id"),
             })
     return headings
+
 
 def _extract_main_content(soup: BeautifulSoup) -> str:
     """
     Isolates the main content area and converts it to text/markdown.
 
     Args:
-        soup (BeautifulSoup): The clean HTML object.
+        soup: The clean HTML object.
 
     Returns:
-        str: The extracted markdown-like content.
+        The extracted markdown-like content.
     """
-    # Heuristic: Find content container
-    content = soup.find('main') or soup.find('article') or soup.find('body')
+    content = soup.find("main") or soup.find("article") or soup.find("body")
     
     if not content:
         return ""
@@ -148,40 +179,42 @@ def _extract_main_content(soup: BeautifulSoup) -> str:
         return _dom_to_markdown(content)
     return ""
 
+
 def _dom_to_markdown(element: Tag) -> str:
     """
     Recursively converts DOM elements into a semantic text representation.
 
     Args:
-        element (Tag): The DOM element to process.
+        element: The DOM element to process.
 
     Returns:
-        str: The generated text string.
+        The generated text string.
     """
     text_parts = []
     
     for child in element.children:
-        if child.name is None: # Text node
+        if child.name is None:  # Text node
             t = str(child).strip()
-            if t: text_parts.append(t)
+            if t:
+                text_parts.append(t)
         
-        elif child.name in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
-            level = int(child.name[1]) # type: ignore
+        elif child.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
+            level = int(child.name[1])  # type: ignore
             text_parts.append(f"\n\n{'#' * level} {child.get_text().strip()}\n\n")
         
-        elif child.name == 'p':
+        elif child.name == "p":
             text_parts.append(f"\n\n{child.get_text().strip()}\n\n")
         
-        elif child.name == 'li':
+        elif child.name == "li":
             text_parts.append(f"\n- {child.get_text().strip()}")
         
-        elif child.name in ['div', 'section', 'article']:
-             if isinstance(child, Tag):
+        elif child.name in ["div", "section", "article"]:
+            if isinstance(child, Tag):
                 text_parts.append(_dom_to_markdown(child))
         
         # Recurse for others
-        elif hasattr(child, 'children'):
-             if isinstance(child, Tag):
+        elif hasattr(child, "children"):
+            if isinstance(child, Tag):
                 text_parts.append(_dom_to_markdown(child))
     
     return " ".join(text_parts).replace("  ", " ").replace("\n ", "\n")
