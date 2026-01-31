@@ -1,5 +1,5 @@
 import { useReport } from '../../context/ReportContext'
-import { CATEGORY_CONFIG, METRIC_CONFIG } from '../../components/results/config'
+import { METRIC_CONFIG } from '../../components/results/config'
 import { MetricsDeepDive } from '../../components/results/MetricsDeepDive'
 
 export function SiteMetrics() {
@@ -33,7 +33,7 @@ export function SiteMetrics() {
                 <p className="text-zinc-400">Analysis of all 22 core AEO signals across the entire site.</p>
             </header>
 
-            <MetricsDeepDive scores={metricAverages} />
+            <MetricsDeepDive metrics={metricAverages} />
         </div>
     )
 }

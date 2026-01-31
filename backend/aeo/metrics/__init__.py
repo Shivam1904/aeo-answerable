@@ -4,11 +4,12 @@ AEO Metrics Module.
 This module provides a modular system for computing Answer Engine Optimization
 metrics at both page-level and site-level granularity.
 """
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from .base import MetricRegistry
 from .page_level import PAGE_LEVEL_METRICS
 from .site_level import SITE_LEVEL_METRICS
+from ..reasoning import ReasoningEngine, DeterministicReasoningEngine
 
 
 def compute_page_metrics(
@@ -17,6 +18,7 @@ def compute_page_metrics(
     extracted_text: str,
     url: str,
     json_ld: List[Dict[str, Any]],
+    reasoning_engine: Optional[ReasoningEngine] = None,
 ) -> Dict[str, Any]:
     """
     Compute all page-level metrics for a single page.
@@ -27,10 +29,15 @@ def compute_page_metrics(
         extracted_text: Main content text extracted from page.
         url: The page URL.
         json_ld: Parsed JSON-LD structured data blocks.
+        reasoning_engine: Optional reasoning engine for explanations.
+                         Defaults to DeterministicReasoningEngine.
 
     Returns:
         Dictionary with metric results and weighted score.
     """
+    # Use deterministic reasoning engine by default
+    reasoning_engine = reasoning_engine or DeterministicReasoningEngine()
+    
     results = {}
     weighted_sum = 0.0
     total_weight = 0.0
@@ -45,6 +52,17 @@ def compute_page_metrics(
                 url=url,
                 json_ld=json_ld,
             )
+            
+            # Generate explanations using the reasoning engine
+            explanations = reasoning_engine.explain(
+                metric.name,
+                result,
+                result["score"]
+            )
+            
+            # Add explanations to result
+            result["explanations"] = explanations.model_dump()
+            
             results[metric.name] = result
             weighted_sum += result["score"] * result["weight"]
             total_weight += result["weight"]
@@ -124,4 +142,6 @@ __all__ = [
     "MetricRegistry",
     "PAGE_LEVEL_METRICS",
     "SITE_LEVEL_METRICS",
+    "ReasoningEngine",
+    "DeterministicReasoningEngine",
 ]

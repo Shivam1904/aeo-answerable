@@ -6,10 +6,8 @@ interface PageDetailProps {
 }
 
 export function PageDetail({ page }: PageDetailProps) {
-    const scores: Record<string, number> = {}
-    if (page.metrics) {
-        Object.entries(page.metrics).forEach(([k, v]) => scores[k] = v.score)
-    }
+    // Pass full metric objects, not just scores
+    const metricsMap = page.metrics ? { ...page.metrics } : {}
 
     const pagePath = new URL(page.url).pathname
     const pageHost = new URL(page.url).hostname
@@ -43,7 +41,7 @@ export function PageDetail({ page }: PageDetailProps) {
                 </div>
             </div>
 
-            <MetricsDeepDive scores={scores} />
+            <MetricsDeepDive metrics={metricsMap} />
         </div>
     )
 }

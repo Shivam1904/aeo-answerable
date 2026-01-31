@@ -84,6 +84,16 @@ class HeadingPredictivePowerMetric(BaseMetric):
             normalized = avg_similarity / self.GOOD_SIMILARITY_THRESHOLD
             score = 0.7 * normalized
 
+        # AGGRESSIVE REPORTING:
+        # If score is not perfect (< 0.9) and we have no explicit failures,
+        # fallback to showing the absolute lowest similarity headings as "weak".
+        if score < 0.9 and not low_similarity_headings:
+             # Sort pairs by similarity score
+             sorted_pairs = sorted(zip(pairs, similarities), key=lambda x: x[1])
+             # Take bottom 3
+             low_similarity_headings = [p[0][0] for p in sorted_pairs[:3]]
+
+
         return self._base_result(
             score=score,
             headings_analyzed=len(pairs),
