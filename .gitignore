@@ -1,0 +1,119 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Documentation
+docs/
+
+# Python Virtual Env
+venv/
+.venv/
+env/
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+.npm/
+.yarn/
+__pycache__/
+*.pyc
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# AEO-specific outputs
+reports/
+output/
+backend/output/
+*.report.json
+*.report.html
+backend/libs/
+
+# Playwright
+playwright-report/
+test-results/
+
+# Lock files (keep one - prefer package-lock.json)
+# yarn.lock
+# pnpm-lock.yaml
+
+# Debug
+*.debug
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# TypeScript incremental compilation
+*.tsbuildinfo
+
+# Optional REPL history
+.node_repl_history
+
+# Secrets and credentials
+*.pem
+*.key
+secrets/
+credentials/
+
+# Local development
+.local/
+local-config.json
