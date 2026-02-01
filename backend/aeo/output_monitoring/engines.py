@@ -316,51 +316,6 @@ def create_bing_copilot_engine(api_key: str, model: str = "gpt-4o") -> LangChain
 
 
 # =============================================================================
-# BACKWARD COMPATIBILITY ALIASES
-# =============================================================================
-# These classes provide drop-in replacements for the old separate engines
-
-class OpenAIEngine(LangChainEngine):
-    """OpenAI/ChatGPT engine (backward compatible)."""
-    
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini"):
-        super().__init__("openai", api_key, model)
-
-
-class AnthropicEngine(LangChainEngine):
-    """Anthropic/Claude engine (backward compatible)."""
-    
-    def __init__(self, api_key: str, model: str = "claude-3-5-haiku-latest"):
-        super().__init__("anthropic", api_key, model)
-
-
-class GeminiEngine(LangChainEngine):
-    """Google Gemini engine (backward compatible)."""
-    
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash-lite"):
-        super().__init__("gemini", api_key, model)
-
-
-class SearchGPTEngine(LangChainEngine):
-    """OpenAI SearchGPT engine with web search capabilities."""
-    
-    def __init__(self, api_key: str, model: str = "gpt-4o-search-preview"):
-        super().__init__("searchgpt", api_key, model)
-
-
-class BingCopilotEngine(LangChainEngine):
-    """
-    Bing Copilot engine.
-    
-    Note: For full Bing search grounding, use Azure OpenAI with data sources.
-    This implementation uses OpenAI API as a fallback.
-    """
-    
-    def __init__(self, api_key: str, model: str = "gpt-4o"):
-        super().__init__("bing_copilot", api_key, model)
-
-
-# =============================================================================
 # MULTI-ENGINE HELPER
 # =============================================================================
 

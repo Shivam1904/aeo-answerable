@@ -9,7 +9,7 @@ import { Navbar } from '../components/common/Navbar'
 import { Overview } from './results/Overview'
 import { SiteMetrics } from './results/SiteMetrics'
 import { PageDetail } from './results/PageDetail'
-import { OutputMonitoringPage } from './results/OutputMonitoringPage'
+import { OutputMonitoring } from './results/OutputMonitoring'
 import { SmartLoader } from '../components/dashboard/SmartLoader'
 
 export default function HomePage() {
@@ -115,7 +115,10 @@ export default function HomePage() {
             />
         )
         if (currentView.type === 'metrics') return <SiteMetrics />
-        if (currentView.type === 'monitoring') return <OutputMonitoringPage />
+        if (currentView.type === 'monitoring') {
+            const siteUrl = latestScan?.result?.pages?.length > 0 ? new URL(latestScan.result.pages[0].url).origin : ''
+            return siteUrl ? <OutputMonitoring targetUrl={siteUrl} /> : <div>No URL available for monitoring.</div>
+        }
 
         if (currentView.type === 'page-detail') {
             const page = latestScan?.result?.pages?.find((p: any) => p.url === currentView.url)

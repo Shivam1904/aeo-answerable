@@ -61,5 +61,39 @@ export const api = {
             if (!res.ok) throw new Error('Failed to get status');
             return res.json();
         }
+    },
+    monitoring: {
+        query: async (query: string, targetUrl: string, engines: string[]) => {
+            const res = await fetch(`${API_BASE}/output-monitoring/query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query, target_url: targetUrl, engines })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Failed to run query');
+            }
+            return res.json();
+        },
+        getHistory: async () => {
+            const res = await fetch(`${API_BASE}/output-monitoring/history`);
+            if (!res.ok) throw new Error('Failed to load history');
+            return res.json();
+        },
+        getHistoryDetails: async (query: string) => {
+            const res = await fetch(`${API_BASE}/output-monitoring/history/details?query=${encodeURIComponent(query)}`);
+            if (!res.ok) throw new Error('Failed to load history details');
+            return res.json();
+        },
+        getBudget: async () => {
+            const res = await fetch(`${API_BASE}/output-monitoring/budget`);
+            if (!res.ok) throw new Error('Failed to load budget');
+            return res.json();
+        },
+        getEngines: async () => {
+            const res = await fetch(`${API_BASE}/output-monitoring/engines`);
+            if (!res.ok) throw new Error('Failed to load engines');
+            return res.json();
+        }
     }
 };

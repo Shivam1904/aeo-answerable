@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react'
 import { Radio } from 'lucide-react'
 import {
@@ -8,6 +7,7 @@ import {
     MultiEngineResponse,
     HistorySidebar
 } from '../../components/output-monitoring'
+import { api } from '../../api'
 
 interface OutputMonitoringProps {
     targetUrl: string
@@ -41,22 +41,7 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
         setResults(null)
 
         try {
-            const response = await fetch('/api/output-monitoring/query', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: queryText,
-                    target_url: targetUrl,
-                    engines
-                })
-            })
-
-            if (!response.ok) {
-                const err = await response.json()
-                throw new Error(err.detail || 'Failed to run query')
-            }
-
-            const data = await response.json()
+            const data = await api.monitoring.query(queryText, targetUrl, engines)
             setResults(data)
         } catch (e: any) {
             setError(e.message)
@@ -77,14 +62,8 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
         setResults(null)
 
         try {
-            // Use the new history details endpoint
-            const response = await fetch(`/api/output-monitoring/history/details?query=${encodeURIComponent(historyQuery)}`)
-
-            if (!response.ok) {
-                throw new Error('Failed to load history')
-            }
-
-            const data = await response.json()
+            // Use the new centralized monitoring API
+            const data = await api.monitoring.getHistoryDetails(historyQuery)
             setResults(data)
         } catch (e: any) {
             setError(e.message)

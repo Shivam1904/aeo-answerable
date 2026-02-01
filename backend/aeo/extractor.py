@@ -8,6 +8,7 @@ semantic content cleaning, and AEO metrics computation.
 import re
 from datetime import datetime
 from typing import List, Dict, Any
+import copy
 
 from bs4 import BeautifulSoup, Tag
 
@@ -40,8 +41,8 @@ def extract(html: str, url: str) -> Dict[str, Any]:
     # Extract JSON-LD before modification
     json_ld = extract_json_ld(soup)
 
-    # Create a copy for boilerplate removal
-    clean_soup = BeautifulSoup(html, "html.parser")
+    # Create a copy for boilerplate removal without re-parsing
+    clean_soup = copy.copy(soup)
     _remove_boilerplate(clean_soup)
 
     # Extract Headings
@@ -90,28 +91,20 @@ def extract(html: str, url: str) -> Dict[str, Any]:
 
 
 def _convert_metrics_to_legacy_audits(metrics: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Convert new metrics format to legacy audit format for backward compatibility.
-    
-    Args:
-        metrics: New metrics dictionary.
-        
-    Returns:
-        Legacy audits format.
-    """
-    structure_metric = metrics.get("heading_hierarchy_validity", {})
-    clarity_metric = metrics.get("anaphora_resolution", {})
+    """Convert new metrics format to legacy audit format for backward compatibility."""
+    structure = metrics.get("heading_hierarchy_validity", {})
+    clarity = metrics.get("anaphora_resolution", {})
     
     return {
         "structure": {
-            "score": structure_metric.get("score", 0),
-            "h1_found": structure_metric.get("h1_count", 0) == 1,
-            "h1_count": structure_metric.get("h1_count", 0),
-            "skipped_levels": structure_metric.get("skipped_levels", []),
+            "score": structure.get("score", 0),
+            "h1_found": structure.get("h1_count", 0) == 1,
+            "h1_count": structure.get("h1_count", 0),
+            "skipped_levels": structure.get("skipped_levels", []),
         },
         "clarity": {
-            "score": clarity_metric.get("score", 0),
-            "pronoun_density": clarity_metric.get("pronoun_density", 0),
+            "score": clarity.get("score", 0),
+            "pronoun_density": clarity.get("pronoun_density", 0),
             "flags": [],
         },
     }

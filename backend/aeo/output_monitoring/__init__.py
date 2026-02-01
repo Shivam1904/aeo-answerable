@@ -9,11 +9,6 @@ Uses LangChain for unified LLM access with consistent error handling.
 from .base import QueryEngine, QueryResult, Citation
 from .engines import (
     LangChainEngine,
-    OpenAIEngine,
-    AnthropicEngine,
-    GeminiEngine,
-    SearchGPTEngine,
-    BingCopilotEngine,
     create_openai_engine,
     create_anthropic_engine,
     create_gemini_engine,
@@ -38,12 +33,6 @@ __all__ = [
     # Unified LangChain Engine
     "LangChainEngine",
     "ENGINE_CONFIGS",
-    # Engine classes
-    "OpenAIEngine",
-    "AnthropicEngine",
-    "GeminiEngine",
-    "SearchGPTEngine",
-    "BingCopilotEngine",
     # Factory functions
     "create_openai_engine",
     "create_anthropic_engine",
