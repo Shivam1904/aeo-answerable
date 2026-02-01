@@ -8,20 +8,20 @@ export function MetricsDeepDive({ metrics = {} }: MetricsDeepDiveProps) {
     return (
         <div className="space-y-8">
             {Object.entries(CATEGORY_CONFIG).map(([catKey, catConfig]) => (
-                <div key={catKey} className="border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/20">
+                <div key={catKey} className="border border-border rounded-xl overflow-hidden bg-surface/20">
                     {/* Category Header */}
-                    <div className="px-6 py-4 bg-zinc-900/50 border-b border-zinc-800 flex items-center gap-3">
-                        <div className="p-2 bg-zinc-950 rounded-lg border border-zinc-800">
-                            <catConfig.icon className="w-5 h-5 text-zinc-400" />
+                    <div className="px-6 py-4 bg-surface-highlight/50 border-b border-border flex items-center gap-3">
+                        <div className="p-2 bg-surface rounded-lg border border-border">
+                            <catConfig.icon className="w-5 h-5 text-text-secondary" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-zinc-200">{catConfig.label}</h3>
-                            <p className="text-xs text-zinc-500">{catConfig.description}</p>
+                            <h3 className="text-lg font-bold text-text-primary">{catConfig.label}</h3>
+                            <p className="text-xs text-text-secondary">{catConfig.description}</p>
                         </div>
                     </div>
 
                     {/* Metrics List */}
-                    <div className="divide-y divide-zinc-800">
+                    <div className="divide-y divide-border">
                         {Object.entries(METRIC_CONFIG)
                             .filter(([_, mConfig]) => mConfig.category === catKey)
                             .map(([mKey, mConfig]) => {
@@ -36,14 +36,14 @@ export function MetricsDeepDive({ metrics = {} }: MetricsDeepDiveProps) {
                                 const details = typeof metricData === 'object' ? metricData : null
 
                                 return (
-                                    <div key={mKey} className="p-6 hover:bg-zinc-900/30 transition-colors group">
+                                    <div key={mKey} className="p-6 hover:bg-surface-highlight/30 transition-colors group">
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
                                             <div className="flex items-center gap-3">
-                                                <mConfig.icon className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
-                                                <span className="font-mono text-sm font-medium text-zinc-300">{mConfig.label}</span>
+                                                <mConfig.icon className="w-4 h-4 text-text-secondary group-hover:text-text-primary transition-colors" />
+                                                <span className="font-mono text-sm font-medium text-text-primary">{mConfig.label}</span>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <div className="w-32 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                                                <div className="w-32 h-2 bg-surface-highlight rounded-full overflow-hidden">
                                                     <div
                                                         className={`h-full rounded-full ${barColor}`}
                                                         style={{ width: `${pct}%` }}
@@ -53,7 +53,7 @@ export function MetricsDeepDive({ metrics = {} }: MetricsDeepDiveProps) {
                                             </div>
                                         </div>
 
-                                        <p className="text-sm text-zinc-500 pl-7 leading-relaxed mb-3">
+                                        <p className="text-sm text-text-secondary pl-7 leading-relaxed mb-3">
                                             {mConfig.description}
                                         </p>
 
@@ -99,12 +99,12 @@ export function MetricsDeepDive({ metrics = {} }: MetricsDeepDiveProps) {
                                                     <div className="space-y-3">
                                                         {reasons.map((reason: any, i: number) => {
                                                             const reasonStyles = {
-                                                                fact: 'text-zinc-300',
+                                                                fact: 'text-text-primary',
                                                                 issue: style.text.replace('400', '300'),
-                                                                suggestion: 'text-indigo-300'
+                                                                suggestion: 'text-primary'
                                                             }
 
-                                                            const textColor = reasonStyles[reason.type as keyof typeof reasonStyles] || 'text-zinc-300'
+                                                            const textColor = reasonStyles[reason.type as keyof typeof reasonStyles] || 'text-text-primary'
 
                                                             return (
                                                                 <div key={i} className="text-xs">
@@ -116,7 +116,7 @@ export function MetricsDeepDive({ metrics = {} }: MetricsDeepDiveProps) {
                                                                     {reason.examples && reason.examples.length > 0 && (
                                                                         <ul className="mt-1.5 space-y-1 ml-4">
                                                                             {reason.examples.map((ex: string, j: number) => (
-                                                                                <li key={j} className="text-zinc-400 font-mono text-[10px] pl-3 border-l border-zinc-700/50">
+                                                                                <li key={j} className="text-text-secondary font-mono text-[10px] pl-3 border-l border-border">
                                                                                     {ex}
                                                                                 </li>
                                                                             ))}

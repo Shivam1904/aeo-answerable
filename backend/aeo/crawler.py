@@ -142,5 +142,9 @@ class Crawler:
             # Fragment check
             full_url = full_url.split('#')[0]
 
+            # Normalization: Strip trailing slash for consistency
+            if full_url.endswith('/'):
+                full_url = full_url[:-1]
+
             if full_url not in self.visited:
                 self.queue.append((full_url, depth + 1))

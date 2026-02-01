@@ -70,21 +70,26 @@ def start_scan(request):
     Start a new AEO scan.
     Returns a job_id that can be polled for status.
     """
-    url = request.data.get('url')
+    url = request.data.get('url') # Can be overridden, but usually Product domain
+    product_id = request.data.get('product_id')
     mode = request.data.get('mode', 'fast')
     max_pages = request.data.get('max_pages', 50)
     
     if not url:
         return Response({'error': 'URL is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    if not url.startswith('http'):
+        url = 'https://' + url
+    
+    product = None
+    if product_id:
+        from .models import Product
+        product = get_object_or_404(Product, pk=product_id)
     
     # Create Job
-    job = ScanJob.objects.create(url=url, mode=mode, status='pending')
+    job = ScanJob.objects.create(url=url, product=product, mode=mode, status='pending')
     
     # Trigger background task
-    # Note: For MVP in Django without Celery, we can run this in a thread 
-    # OR use synchronous waiting if we accept blocking (bad)
-    # OR use simple async view wrapper.
-    # We'll use a Thread for simplicity here to replicate 'BackgroundTasks' behavior without locking the request.
     import threading
     threading.Thread(target=run_scan_thread, args=(job.job_id, url, mode, max_pages)).start()
     
@@ -93,15 +98,9 @@ def start_scan(request):
 
 def run_scan_thread(job_id, url, mode, max_pages):
     """
-    Thread target to run the scan synchronously (since the Crawler is async, 
-    we need to run it in a new event loop or via asyncio.run).
+    Thread target to run the scan synchronously.
     """
     try:
-        # Update status to running
-        # Use database connection safely in thread requires handling, but for SQLite usually okay if quick.
-        # Better: use sync methods.
-        
-        # job = ScanJob.objects.get(job_id=job_id) # Getting freshness
         ScanJob.objects.filter(job_id=job_id).update(status='running')
         
         settings = Settings(
@@ -115,7 +114,6 @@ def run_scan_thread(job_id, url, mode, max_pages):
         else:
             crawler = Crawler(settings)
             
-        # Run async crawler in this thread
         result = asyncio.run(crawler.scan())
         
         ScanJob.objects.filter(job_id=job_id).update(
@@ -145,7 +143,48 @@ def get_scan_status(request, job_id):
         'status': job.status,
         'progress': {'pages_scanned': job.pages_scanned},
         'result': job.result,
-        'error': job.error
+        'error': job.error,
+        'timestamp': job.completed_at or job.created_at
+    })
+
+
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def get_latest_scan_for_product(request, product_id):
+    """
+    Get the most recent COMPLETED scan for a product.
+    Used for persistence - show last results instead of forcing new scan.
+    """
+    # Get latest complete scan
+    job = ScanJob.objects.filter(
+        product_id=product_id, 
+        status='complete'
+    ).order_by('-completed_at').first()
+    
+    if not job:
+        # Check if there is a running one?
+        running_job = ScanJob.objects.filter(
+            product_id=product_id,
+            status__in=['pending', 'running']
+        ).order_by('-created_at').first()
+        
+        if running_job:
+             return Response({
+                'found': True,
+                'status': running_job.status,
+                'job_id': running_job.job_id,
+                'is_running': True
+            })
+            
+        return Response({'found': False}, status=200)
+        
+    return Response({
+        'found': True,
+        'job_id': job.job_id,
+        'status': job.status,
+        'timestamp': job.completed_at,
+        'result': job.result # Include result so frontend can render immediately
     })
 
 

@@ -101,8 +101,8 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
                     <Radio className="w-6 h-6 text-indigo-400" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-zinc-100">AI Output Monitoring</h2>
-                    <p className="text-zinc-500 mt-1">
+                    <h2 className="text-2xl font-bold text-text-primary">Agent Output</h2>
+                    <p className="text-text-secondary mt-1">
                         See how AI models answer questions about your brand.
                     </p>
                 </div>

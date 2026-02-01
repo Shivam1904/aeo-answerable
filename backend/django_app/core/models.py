@@ -2,6 +2,29 @@ from django.db import models
 from django.utils import timezone
 import uuid
 
+class AppUser(models.Model):
+    """
+    Simple user model for the MVP.
+    """
+    username = models.CharField(max_length=150, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.username
+
+class Product(models.Model):
+    """
+    A product/website belonging to a user.
+    """
+    user = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name='products')
+    name = models.CharField(max_length=200)
+    domain = models.URLField(max_length=500, help_text="The main domain of the product (e.g., https://example.com)")
+    default_mode = models.CharField(max_length=20, default='fast', choices=[('fast', 'Fast'), ('rendered', 'Rendered')])
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
 class ScanJob(models.Model):
     """
     Stores the status and result of a crawling scan.
@@ -14,6 +37,10 @@ class ScanJob(models.Model):
     ]
 
     job_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Link to Product. Optional for now to avoid immediate breakage if manual scans used, 
+    # but strictly required for the new flow.
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True, related_name='scans')
+    
     url = models.URLField(max_length=500)
     mode = models.CharField(max_length=20, default='fast')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -34,7 +61,7 @@ class ScanJob(models.Model):
         return f"{self.url} ({self.status})"
 
 
-    # OutputQuery removed as per user request for single-table architecture
+# OutputQuery removed as per user request for single-table architecture
 
 
 
@@ -45,6 +72,9 @@ class LLMInteraction(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     timestamp = models.DateTimeField(auto_now_add=True)
+    
+    # Link to Product for better cost allocation
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
     
     # User Request Context (Merged from OutputQuery)
     target_url = models.URLField(max_length=500, default="https://example.com")

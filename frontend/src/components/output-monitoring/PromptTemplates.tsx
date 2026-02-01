@@ -1,5 +1,5 @@
 
-import { Sparkles, MessageSquare, ArrowRight } from 'lucide-react'
+import { Sparkles, MessageSquare } from 'lucide-react'
 
 export interface SmartPrompt {
     id: string
@@ -51,7 +51,7 @@ export function PromptTemplates({ onSelect, brandName }: PromptTemplatesProps) {
 
     return (
         <div className="space-y-4">
-            <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-sm font-medium text-text-secondary uppercase tracking-wider flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 Quick Templates
             </h3>
@@ -61,17 +61,17 @@ export function PromptTemplates({ onSelect, brandName }: PromptTemplatesProps) {
                     <button
                         key={template.id}
                         onClick={() => onSelect(template.query)}
-                        className="group flex flex-col items-start gap-2 p-4 bg-zinc-900/30 hover:bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 rounded-xl transition-all text-left"
+                        className="group flex flex-col items-start gap-2 p-4 bg-surface/50 hover:bg-surface border border-border hover:border-primary/50 rounded-xl transition-all text-left shadow-sm"
                     >
                         <div className="p-2 bg-indigo-500/10 rounded-lg group-hover:bg-indigo-500/20 transition-colors">
                             <MessageSquare className="w-4 h-4 text-indigo-400" />
                         </div>
 
                         <div>
-                            <div className="text-sm font-medium text-zinc-200 group-hover:text-indigo-300 transition-colors">
+                            <div className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors">
                                 {template.category} Check
                             </div>
-                            <div className="text-xs text-zinc-500 mt-1 line-clamp-2 group-hover:text-zinc-400">
+                            <div className="text-xs text-text-secondary mt-1 line-clamp-2 group-hover:text-text-secondary/80">
                                 "{template.query}"
                             </div>
                         </div>

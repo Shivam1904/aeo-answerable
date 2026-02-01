@@ -5,9 +5,52 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: #fcfcfc;
+    /* Warmer Off-White */
+    --surface: #ffffff;
+    /* Pure White */
+    --surface-highlight: #f4f4f5;
+    /* Zinc 100 */
+    --border: #e4e4e7;
+    /* Zinc 200 - Keep for now, but check contrast */
+    --text-primary: #18181b;
+    /* Zinc 900 */
+    --text-secondary: #52525b;
+    /* Zinc 600 - Darker for better contrast */
+    --primary: #4f46e5;
+    /* Indigo 600 */
+    --primary-foreground: #ffffff;
+  }
+
+  .dark {
+    --background: #050505;
+    /* Black */
+    --surface: #09090b;
+    /* Zinc 950 */
+    --surface-highlight: #18181b;
+    /* Zinc 900 */
+    --border: #27272a;
+    /* Zinc 800 */
+    --text-primary: #fafafa;
+    /* Zinc 50 */
+    --text-secondary: #a1a1aa;
+    /* Zinc 400 */
+    --primary: #6366f1;
+    /* Indigo 500 */
+    --primary-foreground: #ffffff;
+  }
+
   body {
-    @apply bg-[#050505] text-white antialiased selection:bg-indigo-500/30 selection:text-indigo-200;
+    background-color: var(--background);
+    color: var(--text-primary);
+    @apply antialiased;
     font-family: 'Inter', sans-serif;
+  }
+
+  ::selection {
+    background-color: rgba(79, 70, 229, 0.3);
+    color: var(--primary);
   }
 }
 

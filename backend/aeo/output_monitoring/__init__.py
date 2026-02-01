@@ -29,7 +29,6 @@ from .similarity import (
     score_response_accuracy,
 )
 from .query_generator import extract_topics, generate_queries
-from .storage import OutputMonitoringStorage
 
 __all__ = [
     # Base classes
@@ -59,6 +58,4 @@ __all__ = [
     "score_response_accuracy",
     "extract_topics",
     "generate_queries",
-    # Storage
-    "OutputMonitoringStorage",
 ]

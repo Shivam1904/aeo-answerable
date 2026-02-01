@@ -58,16 +58,16 @@ export function QueryInput({
     const wordCount = query.trim().split(/\s+/).filter(Boolean).length
 
     return (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
             {/* Header / Title Area */}
-            <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-border bg-surface flex items-center justify-between">
                 <div>
-                    <h2 className="text-lg font-semibold text-zinc-100 flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
                         <Search className="w-5 h-5 text-indigo-400" />
                         Test Your Content against AI
                     </h2>
-                    <p className="text-xs text-zinc-500 mt-1">
-                        Analyzing against: <span className="text-indigo-400 font-mono">{targetUrl}</span>
+                    <p className="text-xs text-text-secondary mt-1">
+                        Analyzing against: <span className="text-primary font-mono">{targetUrl}</span>
                     </p>
                 </div>
             </div>
@@ -84,12 +84,12 @@ export function QueryInput({
                             }
                         }}
                         placeholder="Type your question here (e.g., 'What is [Your Brand] doing in AI space?')..."
-                        className="w-full min-h-[140px] p-4 bg-zinc-950/50 border border-zinc-700 rounded-xl text-zinc-100 text-lg placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all resize-y"
+                        className="w-full min-h-[140px] p-4 bg-background border border-border rounded-xl text-text-primary text-lg placeholder:text-text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-y"
                     />
 
                     {/* Bottom Right Indicators */}
-                    <div className="absolute bottom-4 right-4 flex items-center gap-4 text-xs text-zinc-500 pointer-events-none">
-                        <div className="flex items-center gap-1.5 p-1.5 bg-zinc-900/80 rounded backdrop-blur-sm border border-zinc-800">
+                    <div className="absolute bottom-4 right-4 flex items-center gap-4 text-xs text-text-secondary pointer-events-none">
+                        <div className="flex items-center gap-1.5 p-1.5 bg-surface/80 rounded backdrop-blur-sm border border-border">
                             <Type className="w-3 h-3" />
                             <span>{wordCount} words</span>
                         </div>
@@ -102,10 +102,10 @@ export function QueryInput({
                     {/* Left: Model Selector Chips */}
                     <div className="flex flex-wrap gap-2">
                         {loadingEngines ? (
-                            <span className="text-xs text-zinc-600">Loading models...</span>
+                            <span className="text-xs text-text-secondary">Loading models...</span>
                         ) : (
                             availableEngines.map((engine) => {
-                                const config = ENGINE_CONFIG[engine.id] || { name: engine.name, color: 'text-zinc-400', bgColor: 'bg-zinc-800' }
+                                const config = ENGINE_CONFIG[engine.id] || { name: engine.name, color: 'text-text-secondary', bgColor: 'bg-surface-highlight' }
                                 const isSelected = selectedEngines.includes(engine.id)
 
                                 return (
@@ -115,7 +115,7 @@ export function QueryInput({
                                         onClick={() => handleEngineToggle(engine.id)}
                                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-2 ${isSelected
                                             ? `${config.bgColor} border-transparent ${config.color} ring-1 ring-inset ring-current`
-                                            : 'bg-zinc-900 border-zinc-700 text-zinc-500 hover:border-zinc-600'
+                                            : 'bg-surface border-border text-text-secondary hover:border-text-secondary/50'
                                             }`}
                                     >
                                         {isSelected && <Check className="w-3 h-3" />}

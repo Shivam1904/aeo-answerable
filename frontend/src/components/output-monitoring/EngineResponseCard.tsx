@@ -11,20 +11,20 @@ export function EngineResponseCard({ result }: EngineResponseCardProps) {
     const hasError = !!result.error
     const config = ENGINE_CONFIG[result.engine] || {
         name: result.engine,
-        color: 'text-zinc-400',
-        bgColor: 'bg-zinc-500/10'
+        color: 'text-text-secondary',
+        bgColor: 'bg-surface/10'
     }
 
     return (
-        <div className="group border border-zinc-800 bg-zinc-900/20 rounded-xl overflow-hidden hover:border-zinc-700 transition-all">
+        <div className="group border border-border bg-surface/20 rounded-xl overflow-hidden hover:border-text-secondary/30 transition-all">
             {/* Minimal Header */}
-            <div className="px-6 py-4 flex items-center justify-between bg-zinc-900/30">
+            <div className="px-6 py-4 flex items-center justify-between bg-surface/30">
                 <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${config.bgColor}`}>
                         <Bot className={`w-4 h-4 ${config.color}`} />
                     </div>
                     <div>
-                        <h4 className="font-bold text-zinc-200">{config.name}</h4>
+                        <h4 className="font-bold text-text-primary">{config.name}</h4>
                     </div>
                 </div>
 
@@ -37,9 +37,9 @@ export function EngineResponseCard({ result }: EngineResponseCardProps) {
                         </span>
                     )}
                     {!hasCitations && !hasError && (
-                        <span className="flex items-center gap-1.5 px-3 py-1 bg-zinc-800/50 border border-zinc-700 rounded-full">
-                            <XCircle className="w-3.5 h-3.5 text-zinc-500" />
-                            <span className="text-xs font-medium text-zinc-500">No Mention</span>
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-surface-highlight border border-border rounded-full">
+                            <XCircle className="w-3.5 h-3.5 text-text-secondary" />
+                            <span className="text-xs font-medium text-text-secondary">No Mention</span>
                         </span>
                     )}
                 </div>
@@ -56,14 +56,14 @@ export function EngineResponseCard({ result }: EngineResponseCardProps) {
                 ) : (
                     <>
                         <div className="prose prose-invert prose-sm max-w-none">
-                            <p className="text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                            <p className="text-text-primary leading-relaxed whitespace-pre-wrap">
                                 {result.response}
                             </p>
                         </div>
 
                         {/* Citations (More Prominent) */}
                         {hasCitations && (
-                            <div className="mt-6 pt-5 border-t border-zinc-800/50">
+                            <div className="mt-6 pt-5 border-t border-border">
                                 <h5 className="text-xs font-bold text-emerald-400 uppercase tracking-wide mb-3 flex items-center gap-2">
                                     <ExternalLink className="w-3 h-3" />
                                     Sources Found
@@ -75,16 +75,16 @@ export function EngineResponseCard({ result }: EngineResponseCardProps) {
                                             href={citation.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="block p-3 bg-zinc-900 border border-zinc-800 hover:border-emerald-500/30 rounded-lg transition-colors group/link"
+                                            className="block p-3 bg-surface border border-border hover:border-emerald-500/30 rounded-lg transition-colors group/link"
                                         >
                                             <div className="flex items-start justify-between gap-2">
-                                                <div className="text-xs font-mono text-indigo-400 group-hover/link:text-indigo-300 break-all">
+                                                <div className="text-xs font-mono text-primary group-hover/link:text-primary/70 break-all">
                                                     {citation.url}
                                                 </div>
-                                                <ExternalLink className="w-3 h-3 text-zinc-600 group-hover/link:text-emerald-400" />
+                                                <ExternalLink className="w-3 h-3 text-text-secondary group-hover/link:text-emerald-400" />
                                             </div>
                                             {citation.snippet && (
-                                                <p className="mt-1 text-xs text-zinc-500 line-clamp-1 italic">
+                                                <p className="mt-1 text-xs text-text-secondary line-clamp-1 italic">
                                                     "...{citation.snippet}..."
                                                 </p>
                                             )}
