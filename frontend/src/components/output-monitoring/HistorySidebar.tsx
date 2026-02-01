@@ -1,13 +1,8 @@
 
 import { useEffect, useState } from 'react'
-import { Clock, ChevronRight, MessageSquare, Search } from 'lucide-react'
+import { Clock } from 'lucide-react'
+import { HistoryItem } from '../../types'
 
-interface HistoryItem {
-    query_text: string
-    last_run: string
-    engine_count: number
-    citation_count: number
-}
 
 interface HistorySidebarProps {
     onSelect: (query: string) => void

@@ -1,12 +1,7 @@
 
 import { Sparkles, MessageSquare } from 'lucide-react'
+import { SmartPrompt } from '../../types'
 
-export interface SmartPrompt {
-    id: string
-    query: string
-    category: string
-    description: string
-}
 
 interface PromptTemplatesProps {
     onSelect: (query: string) => void

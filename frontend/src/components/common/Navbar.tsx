@@ -25,7 +25,7 @@ export function Navbar({ product, user }: NavbarProps) {
             <div className="max-w-screen-2xl mx-auto px-6 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <a href="/products" className="font-semibold tracking-tight text-text-primary hidden sm:block hover:text-text-secondary transition-colors">
-                        aeo.answerable
+                        Answerable
                     </a>
                 </div>
 
