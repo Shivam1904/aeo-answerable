@@ -117,3 +117,7 @@ credentials/
 # Local development
 .local/
 local-config.json
+
+# Database
+db.sqlite3
+*.sqlite3

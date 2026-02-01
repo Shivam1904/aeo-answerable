@@ -41,11 +41,16 @@ export default function HomePage() {
         setIsLoading(true)
         setError('')
 
+        let targetUrl = url.trim()
+        if (!/^https?:\/\//i.test(targetUrl)) {
+            targetUrl = 'https://' + targetUrl
+        }
+
         try {
             const res = await fetch('/api/scan', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: url.trim(), mode, max_pages: 50 })
+                body: JSON.stringify({ url: targetUrl, mode, max_pages: 50 })
             })
             if (!res.ok) throw new Error('Scan failed to start')
             const { job_id } = await res.json()
@@ -70,7 +75,7 @@ export default function HomePage() {
                 <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-8">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-indigo-400 mb-4">
                         <Terminal className="w-3 h-3" />
-                        <span>v0.2.0 • 22 AEO Metrics</span>
+                        <span>v0.2.0 • Core AEO Metrics</span>
                     </div>
 
                     <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-tight">
@@ -94,10 +99,10 @@ export default function HomePage() {
                                     <Search className="w-5 h-5" />
                                 </div>
                                 <input
-                                    type="url"
+                                    type="text"
                                     value={url}
                                     onChange={(e) => setUrl(e.target.value)}
-                                    placeholder="https://example.com"
+                                    placeholder="example.com"
                                     className="flex-1 bg-transparent text-white placeholder-gray-600 outline-none text-base h-12"
                                     required
                                     disabled={isLoading}

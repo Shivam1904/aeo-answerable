@@ -54,7 +54,7 @@ export default function ResultsPage() {
                     </div>
                 </div>
                 <h2 className="text-xl font-bold text-zinc-100 mb-2">Generating Report</h2>
-                <p className="text-zinc-500">Analyzing 22 AEO signals...</p>
+                <p className="text-zinc-500">Analyzing core AEO signals...</p>
             </div>
         )
     }
