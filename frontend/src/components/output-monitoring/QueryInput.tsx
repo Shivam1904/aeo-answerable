@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react'
-import { Search, Zap, DollarSign, Type, Check } from 'lucide-react'
-import { EngineInfo, CostEstimate, ENGINE_CONFIG } from './types'
+import { Search, Zap, Type, Check } from 'lucide-react'
+import { EngineInfo, ENGINE_CONFIG } from './types'
 
 interface QueryInputProps {
     targetUrl: string

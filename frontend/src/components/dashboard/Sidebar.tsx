@@ -110,12 +110,12 @@ export function Sidebar({ currentView, onViewChange, hostname, productName }: Si
 
                             {/* Page List */}
                             <div className="space-y-0.5">
-                                {filteredPages.map(page => {
+                                {filteredPages.map((page, index) => {
                                     const isActive = currentView.type === 'page-detail' && currentView.url === page.url
                                     const path = new URL(page.url).pathname || '/'
                                     return (
                                         <button
-                                            key={page.url}
+                                            key={`${page.url}-${index}`}
                                             onClick={() => onViewChange({ type: 'page-detail', url: page.url })}
                                             className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs text-left transition-colors ${isActive
                                                 ? 'bg-surface-highlight text-primary border border-border'

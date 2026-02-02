@@ -13,7 +13,7 @@ export function ComparisonView({ results }: ComparisonViewProps) {
             </div>
         )
     }
-    
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -31,7 +31,7 @@ export function ComparisonView({ results }: ComparisonViewProps) {
 
             {/* Comparison Grid */}
             <div className={`grid gap-4 ${results.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-                {results.map((result) => {
+                {results.map((result, i) => {
                     const config = ENGINE_CONFIG[result.engine] || {
                         name: result.engine,
                         color: 'text-zinc-400',
@@ -41,12 +41,11 @@ export function ComparisonView({ results }: ComparisonViewProps) {
 
                     return (
                         <div
-                            key={result.engine}
-                            className={`border rounded-xl p-4 ${
-                                hasCitations
+                            key={`${result.engine}-${i}`}
+                            className={`border rounded-xl p-4 ${hasCitations
                                     ? 'border-emerald-500/30 bg-emerald-900/5'
                                     : 'border-zinc-800 bg-zinc-900/30'
-                            }`}
+                                }`}
                         >
                             {/* Engine Header */}
                             <div className="flex items-center justify-between mb-3 pb-3 border-b border-zinc-800">
@@ -95,16 +94,15 @@ export function ComparisonView({ results }: ComparisonViewProps) {
             <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg">
                 <h4 className="text-sm font-bold text-zinc-300 mb-2">Citation Summary</h4>
                 <div className="flex flex-wrap gap-3">
-                    {results.map((result) => {
+                    {results.map((result, i) => {
                         const config = ENGINE_CONFIG[result.engine]
                         const hasCitations = result.citations.length > 0
-                        
+
                         return (
                             <div
-                                key={result.engine}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                                    hasCitations ? 'bg-emerald-900/20' : 'bg-zinc-800'
-                                }`}
+                                key={`${result.engine}-${i}`}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg ${hasCitations ? 'bg-emerald-900/20' : 'bg-zinc-800'
+                                    }`}
                             >
                                 {hasCitations ? (
                                     <CheckCircle className="w-4 h-4 text-emerald-400" />

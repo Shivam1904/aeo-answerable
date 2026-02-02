@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { TrendingUp, Heart, Hash, Eye, Award, AlertTriangle, Target, Zap } from 'lucide-react'
+import { TrendingUp, Heart, Hash, Eye, Target, Zap } from 'lucide-react'
 import { MultiEngineResponse, ENGINE_CONFIG } from './types'
 
 interface PromptResult {
@@ -30,7 +30,7 @@ export function AIVisibilityDashboard({ results, brandName }: AIVisibilityDashbo
     const metrics = useMemo(() => calculateMetrics(results, brandName), [results, brandName])
 
     const completedResults = results.filter(r => r.result)
-    
+
     if (completedResults.length === 0) {
         return (
             <div className="border border-zinc-800 rounded-xl bg-zinc-900/30 p-8 text-center">
@@ -66,7 +66,7 @@ export function AIVisibilityDashboard({ results, brandName }: AIVisibilityDashbo
                         {getVisibilityDescription(metrics.overallVisibility)}
                     </p>
                     <div className="mt-3 w-full bg-zinc-800 rounded-full h-2">
-                        <div 
+                        <div
                             className={`h-2 rounded-full transition-all ${getVisibilityBarColor(metrics.overallVisibility)}`}
                             style={{ width: `${metrics.overallVisibility}%` }}
                         />
@@ -93,11 +93,11 @@ export function AIVisibilityDashboard({ results, brandName }: AIVisibilityDashbo
                     <div className="mt-3 flex items-center gap-2">
                         <span className="text-xs text-red-400">😠</span>
                         <div className="flex-1 bg-zinc-800 rounded-full h-2 relative">
-                            <div 
+                            <div
                                 className="absolute top-0 h-2 bg-gradient-to-r from-red-500 via-yellow-500 to-emerald-500 rounded-full"
                                 style={{ width: '100%' }}
                             />
-                            <div 
+                            <div
                                 className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full border-2 border-zinc-900 shadow-lg transition-all"
                                 style={{ left: `calc(${metrics.overallSentiment}% - 6px)` }}
                             />
@@ -125,13 +125,12 @@ export function AIVisibilityDashboard({ results, brandName }: AIVisibilityDashbo
                     {metrics.avgPosition > 0 && (
                         <div className="mt-3 flex items-center gap-1">
                             {[1, 2, 3, 4, 5].map(pos => (
-                                <div 
+                                <div
                                     key={pos}
-                                    className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${
-                                        Math.round(metrics.avgPosition) === pos
+                                    className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${Math.round(metrics.avgPosition) === pos
                                             ? 'bg-indigo-500 text-white'
                                             : 'bg-zinc-800 text-zinc-500'
-                                    }`}
+                                        }`}
                                 >
                                     {pos}
                                 </div>
@@ -199,7 +198,7 @@ export function AIVisibilityDashboard({ results, brandName }: AIVisibilityDashbo
 
 function calculateMetrics(results: PromptResult[], brandName: string): VisibilityMetrics {
     const completedResults = results.filter(r => r.result)
-    
+
     if (completedResults.length === 0) {
         return {
             overallVisibility: 0,
@@ -221,47 +220,47 @@ function calculateMetrics(results: PromptResult[], brandName: string): Visibilit
 
     completedResults.forEach(({ prompt, result }) => {
         if (!result) return
-        
+
         result.results.forEach(engineResult => {
             totalResponses++
-            
+
             // Engine tracking
             if (!engineStats[engineResult.engine]) {
                 engineStats[engineResult.engine] = { cited: 0, total: 0 }
             }
             engineStats[engineResult.engine].total++
-            
+
             // Category tracking
             if (!categoryStats[prompt.category]) {
                 categoryStats[prompt.category] = { cited: 0, total: 0, sentimentSum: 0 }
             }
             categoryStats[prompt.category].total++
-            
+
             if (engineResult.citations.length > 0) {
                 totalCitations++
                 engineStats[engineResult.engine].cited++
                 categoryStats[prompt.category].cited++
-                
+
                 // Track positions
                 engineResult.citations.forEach(c => {
                     if (c.position > 0) allPositions.push(c.position)
                 })
             }
-            
+
             allResponses.push(engineResult.response)
         })
     })
 
-    const overallVisibility = totalResponses > 0 
-        ? Math.round((totalCitations / totalResponses) * 100) 
+    const overallVisibility = totalResponses > 0
+        ? Math.round((totalCitations / totalResponses) * 100)
         : 0
 
     // Calculate sentiment
     const overallSentiment = calculateOverallSentiment(allResponses.join(' '), brandName)
 
     // Calculate average position
-    const avgPosition = allPositions.length > 0 
-        ? allPositions.reduce((a, b) => a + b, 0) / allPositions.length 
+    const avgPosition = allPositions.length > 0
+        ? allPositions.reduce((a, b) => a + b, 0) / allPositions.length
         : 0
 
     // Build engine breakdown
@@ -299,40 +298,40 @@ function calculateMetrics(results: PromptResult[], brandName: string): Visibilit
 function calculateOverallSentiment(text: string, brandName: string): number {
     const lowerText = text.toLowerCase()
     const lowerBrand = brandName.toLowerCase()
-    
+
     // Find sentences mentioning the brand
     const sentences = text.split(/[.!?]+/)
     const brandSentences = sentences.filter(s => s.toLowerCase().includes(lowerBrand))
-    
+
     const positiveWords = ['great', 'excellent', 'good', 'best', 'amazing', 'love', 'recommend', 'helpful', 'powerful', 'innovative', 'reliable', 'trusted', 'leading', 'popular', 'top', 'quality', 'impressive', 'effective']
     const negativeWords = ['bad', 'poor', 'worst', 'terrible', 'hate', 'avoid', 'expensive', 'complicated', 'difficult', 'limited', 'outdated', 'issues', 'problems', 'lacking', 'mediocre', 'disappointing']
-    
+
     let positive = 0
     let negative = 0
-    
+
     const textToAnalyze = brandSentences.length > 0 ? brandSentences.join(' ') : text
     const words = textToAnalyze.toLowerCase().split(/\s+/)
-    
+
     words.forEach(word => {
         if (positiveWords.some(pw => word.includes(pw))) positive++
         if (negativeWords.some(nw => word.includes(nw))) negative++
     })
-    
+
     const total = positive + negative
     if (total === 0) return 60 // Neutral-positive default
-    
+
     return Math.round((positive / total) * 100)
 }
 
 function generateRecommendations(
-    visibility: number, 
-    sentiment: number, 
-    position: number, 
+    visibility: number,
+    sentiment: number,
+    position: number,
     engines: Record<string, { visibility: number; cited: number; total: number }>,
     brandName: string
 ): string[] {
     const recs: string[] = []
-    
+
     if (visibility < 30) {
         recs.push(`Create more authoritative content about ${brandName} to increase AI visibility`)
         recs.push('Add schema markup to help AI engines understand your content structure')
@@ -340,16 +339,16 @@ function generateRecommendations(
         recs.push('Focus on creating comparison content and "best of" articles')
         recs.push('Build more backlinks from authoritative sources')
     }
-    
+
     if (sentiment < 50) {
         recs.push('Address negative perceptions by highlighting positive case studies and reviews')
         recs.push('Create content showcasing customer success stories')
     }
-    
+
     if (position > 3) {
         recs.push('Create more comprehensive, in-depth content to improve ranking position')
     }
-    
+
     // Engine-specific recommendations
     Object.entries(engines).forEach(([engine, stats]) => {
         if (stats.visibility < 20 && stats.total >= 2) {
@@ -357,7 +356,7 @@ function generateRecommendations(
             recs.push(`Low visibility on ${engineName} - consider optimizing content for this AI model`)
         }
     })
-    
+
     // Limit to 4 recommendations
     return recs.slice(0, 4)
 }

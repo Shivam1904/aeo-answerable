@@ -1,8 +1,18 @@
+
 export interface SmartPrompt {
     id: string
     query: string
-    category: string
+    category: 'brand' | 'product' | 'comparison' | 'how-to' | 'reviews' | 'pricing'
+    priority: 'high' | 'medium' | 'low'
     description: string
+    expectedInsight: string
+}
+
+export interface PromptResult {
+    prompt: SmartPrompt
+    result: MultiEngineResponse | null
+    isLoading: boolean
+    error?: string
 }
 
 export interface HistoryItem {
@@ -17,6 +27,35 @@ export interface Citation {
     url: string
     snippet?: string
     title?: string
+    position?: number
+}
+
+export interface SOTAInsights {
+    share_of_voice: Record<string, number>
+    sentiment_profile: {
+        brand_sentiment: number
+        industry_benchmark: number
+        label: string
+    }
+    key_takeaways: string[]
+}
+
+export interface MultiEngineResponse {
+    query: string
+    results: QueryResult[]
+    total_cost_usd: number
+    citation_rate: number
+    sota_insights?: SOTAInsights
+}
+
+
+export interface AnalysisData {
+    share_of_voice?: number
+    sentiment_score?: number
+    recommendation?: string
+    rank?: number
+    key_attributes?: { name: string; sentiment: string }[]
+    hallucinations?: string[]
 }
 
 export interface QueryResult {
@@ -25,6 +64,9 @@ export interface QueryResult {
     citations: Citation[]
     error?: string
     latencyMs?: number
+    cost_usd?: number
+    tokens_used?: number
+    analysis?: AnalysisData
 }
 
 export interface EngineInfo {
@@ -48,4 +90,17 @@ export const ENGINE_CONFIG: Record<string, { name: string; color: string; bgColo
     perplexity: { name: 'Perplexity', color: 'text-teal-500', bgColor: 'bg-teal-500/10' },
     google: { name: 'Google SGE', color: 'text-blue-600', bgColor: 'bg-blue-600/10' },
     bing: { name: 'Bing Chat', color: 'text-sky-500', bgColor: 'bg-sky-500/10' }
+}
+
+export interface Product {
+    id: number
+    name: string
+    domain: string
+    default_mode?: 'fast' | 'rendered'
+    created_at: string
+    business_bio?: string
+    is_bio_ai_generated?: boolean
+    target_region?: string
+    target_audience_age?: string
+    gender_preference?: string
 }

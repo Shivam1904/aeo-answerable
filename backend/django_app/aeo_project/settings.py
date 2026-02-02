@@ -29,7 +29,7 @@ ALLOWED_HOSTS = ['*']
 
 # Feature Flags
 # Set to True to explore the UI without using API credits
-USE_MOCK_LLM = True
+USE_MOCK_LLM = False
 
 
 # Application definition

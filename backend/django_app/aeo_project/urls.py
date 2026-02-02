@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.urls import path
-from core import views
 from core import views_auth
+from core import views_scan
+from core import views_monitoring
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,16 +13,19 @@ urlpatterns = [
     path('api/products/<int:product_id>', views_auth.get_product_view),
     
     # Scans
-    path('api/scan', views.start_scan),
-    path('api/scan/<str:job_id>', views.get_scan_status),
-    path('api/products/<int:product_id>/latest-scan', views.get_latest_scan_for_product),
+    path('api/scan', views_scan.start_scan),
+    path('api/scan/<str:job_id>', views_scan.get_scan_status),
+    path('api/products/<int:product_id>/latest-scan', views_scan.get_latest_scan_for_product),
 
     # Output Monitoring API (subset for verifying)
-    path('api/output-monitoring/query', views.output_query),
-    path('api/output-monitoring/available-engines/', views.available_engines),
-    path('api/output-monitoring/budget', views.get_budget),
-    path('api/output-monitoring/history', views.get_query_history),
-    path('api/output-monitoring/history/details', views.get_history_details),
+    path('api/output-monitoring/analyze', views_monitoring.analyze_brand_view),
+    path('api/output-monitoring/query', views_monitoring.output_query),
+    path('api/output-monitoring/available-engines/', views_monitoring.available_engines),
+    path('api/output-monitoring/budget', views_monitoring.get_budget),
+    path('api/output-monitoring/history', views_monitoring.get_query_history),
+    path('api/output-monitoring/history/details', views_monitoring.get_history_details),
+    path('api/output-monitoring/history/delete', views_monitoring.delete_history),
+    path('api/output-monitoring/competitors', views_monitoring.get_similar_companies),
     
     # Health
     path('api/health', lambda r: __import__('django.http').HttpResponse('ok')),

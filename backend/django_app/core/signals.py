@@ -28,7 +28,8 @@ def log_llm_interaction(sender, interaction_data, **kwargs):
             latency_ms=interaction_data.get('latency_ms', 0),
             success=interaction_data.get('success', True),
             error_message=interaction_data.get('error_message'),
-            metadata=interaction_data.get('metadata', {})
+            metadata=interaction_data.get('metadata', {}),
+            analysis_data=interaction_data.get('analysis_data', {})
         )
         logger.info(f"Logged LLM interaction for {interaction_data.get('engine')}")
         

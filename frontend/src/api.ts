@@ -1,99 +1,184 @@
 const API_BASE = '/api';
 
+class ApiError extends Error {
+    constructor(public status: number, message: string) {
+        super(message);
+        this.name = 'ApiError';
+    }
+}
+
+async function fetchClient<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const { headers, ...customConfig } = options;
+
+    const config: RequestInit = {
+        method: options.method || 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(headers as Record<string, string>),
+        },
+        ...customConfig,
+    };
+
+    const response = await fetch(`${API_BASE}${endpoint}`, config);
+
+    if (response.status === 404) {
+        return null as unknown as T; // Handle 404s gracefully where expected
+    }
+
+    if (!response.ok) {
+        throw new ApiError(response.status, `API Error: ${response.statusText}`);
+    }
+
+    // Handle empty responses (e.g. 204 No Content)
+    if (response.status === 204) {
+        return {} as T;
+    }
+
+    return response.json();
+}
+
 export const api = {
     auth: {
-        login: async (username: string) => {
-            const res = await fetch(`${API_BASE}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username })
-            });
-            if (!res.ok) throw new Error('Login failed');
-            return res.json();
-        }
+        login: (username: string) =>
+            fetchClient('/auth/login', { method: 'POST', body: JSON.stringify({ username }) })
     },
     products: {
-        list: async (userId: string | number) => {
-            const res = await fetch(`${API_BASE}/products?user_id=${userId}`);
-            if (!res.ok) throw new Error('Failed to load products');
-            return res.json();
-        },
-        create: async (userId: string | number, name: string, domain: string, defaultMode: 'fast' | 'rendered' = 'fast') => {
-            const res = await fetch(`${API_BASE}/products`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: userId, name, domain, default_mode: defaultMode })
-            });
-            if (!res.ok) throw new Error('Failed to create product');
-            return res.json();
-        },
-        get: async (productId: string | number) => {
-            const res = await fetch(`${API_BASE}/products/${productId}`);
-            if (!res.ok) throw new Error('Failed to load product');
-            return res.json();
-        },
-        getLatestScan: async (productId: string | number) => {
-            const res = await fetch(`${API_BASE}/products/${productId}/latest-scan`);
-            if (res.status === 404) return null;
-            if (!res.ok) throw new Error('Failed to check for existing scans');
-            return res.json();
-        },
-        delete: async (productId: string | number) => {
-            const res = await fetch(`${API_BASE}/products/${productId}`, {
-                method: 'DELETE'
-            });
-            if (!res.ok) throw new Error('Failed to delete product');
-            return res.json();
-        }
+        list: (userId: string | number) =>
+            fetchClient(`/products?user_id=${userId}`),
+
+        create: (
+            userId: string | number,
+            name: string,
+            domain: string,
+            defaultMode: 'fast' | 'rendered' = 'fast',
+            profile?: {
+                business_bio?: string
+                target_region?: string
+                target_audience_age?: string
+                gender_preference?: string
+            }
+        ) => fetchClient('/products', {
+            method: 'POST',
+            body: JSON.stringify({
+                user_id: userId,
+                name,
+                domain,
+                default_mode: defaultMode,
+                ...profile
+            })
+        }),
+
+        get: (productId: string | number) =>
+            fetchClient(`/products/${productId}`),
+
+        update: (productId: string | number, data: any) =>
+            fetchClient(`/products/${productId}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+        getLatestScan: (productId: string | number) =>
+            fetchClient(`/products/${productId}/latest-scan`),
+
+        delete: (productId: string | number) =>
+            fetchClient(`/products/${productId}`, { method: 'DELETE' })
     },
     scan: {
-        start: async (url: string, productId: string | number, mode: 'fast' | 'rendered' = 'fast') => {
-            const res = await fetch(`${API_BASE}/scan`, {
+        start: (url: string, productId: string | number, mode: 'fast' | 'rendered' = 'fast') =>
+            fetchClient('/scan', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url, product_id: productId, mode })
-            });
-            if (!res.ok) throw new Error('Scan failed to start');
-            return res.json();
-        },
-        getStatus: async (jobId: string) => {
-            const res = await fetch(`${API_BASE}/scan/${jobId}`);
-            if (!res.ok) throw new Error('Failed to get status');
-            return res.json();
-        }
+            }),
+
+        getStatus: (jobId: string) =>
+            fetchClient(`/scan/${jobId}`)
     },
     monitoring: {
-        query: async (query: string, targetUrl: string, engines: string[]) => {
-            const res = await fetch(`${API_BASE}/output-monitoring/query`, {
+        analyze: (targetUrl: string, pageContent?: string, productId?: string | number): Promise<AnalysisResponse> =>
+            fetchClient('/output-monitoring/analyze', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query, target_url: targetUrl, engines })
-            });
-            if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.detail || 'Failed to run query');
-            }
-            return res.json();
-        },
-        getHistory: async () => {
-            const res = await fetch(`${API_BASE}/output-monitoring/history`);
-            if (!res.ok) throw new Error('Failed to load history');
-            return res.json();
-        },
-        getHistoryDetails: async (query: string) => {
-            const res = await fetch(`${API_BASE}/output-monitoring/history/details?query=${encodeURIComponent(query)}`);
-            if (!res.ok) throw new Error('Failed to load history details');
-            return res.json();
-        },
-        getBudget: async () => {
-            const res = await fetch(`${API_BASE}/output-monitoring/budget`);
-            if (!res.ok) throw new Error('Failed to load budget');
-            return res.json();
-        },
-        getEngines: async () => {
-            const res = await fetch(`${API_BASE}/output-monitoring/engines`);
-            if (!res.ok) throw new Error('Failed to load engines');
-            return res.json();
-        }
-    }
+                body: JSON.stringify({ target_url: targetUrl, page_content: pageContent, product_id: productId })
+            }),
+
+        query: (query: string, targetUrl: string, engines: string[], brandProfile?: any): Promise<MultiEngineResponse> =>
+            fetchClient('/output-monitoring/query', {
+                method: 'POST',
+                body: JSON.stringify({
+                    query,
+                    target_url: targetUrl,
+                    engines,
+                    brand_profile: brandProfile
+                })
+            }),
+
+        getHistory: () =>
+            fetchClient('/output-monitoring/history'),
+
+        getHistoryDetails: (query: string) =>
+            fetchClient(`/output-monitoring/history/details?query=${encodeURIComponent(query)}`),
+
+        deleteHistory: (query: string) =>
+            fetchClient(`/output-monitoring/history/delete?query=${encodeURIComponent(query)}`, { method: 'DELETE' }),
+
+        getBudget: () =>
+            fetchClient('/output-monitoring/budget'),
+
+        getEngines: () =>
+            fetchClient('/output-monitoring/engines'),
+
+        getSimilarCompanies: (productId: string | number) =>
+            fetchClient(`/output-monitoring/competitors?product_id=${productId}`),
+
+        refreshCompetitors: (productId: string | number) =>
+            fetchClient('/output-monitoring/competitors/refresh', {
+                method: 'POST',
+                body: JSON.stringify({ product_id: productId })
+            })
+    },
+    refreshQueries: (productId: string | number) =>
+        fetchClient('/output-monitoring/queries/refresh', {
+            method: 'POST',
+            body: JSON.stringify({ product_id: productId })
+        })
 };
+
+
+export interface BrandProfile {
+    brand_name: string
+    industry: string
+    tagline?: string
+    target_audience: string[]
+    key_value_props: string[]
+    primary_competitors: string[]
+    industry_baseline_sentiment: number
+}
+
+export interface AnalysisResponse {
+    profile: BrandProfile
+    suggested_queries: {
+        query: string
+        type: string
+        priority: number
+        description?: string
+    }[]
+}
+
+export interface Citation {
+    url: string
+    snippet: string
+}
+
+export interface EngineResult {
+    engine: string
+    response: string
+    citations: Citation[]
+    cost_usd: number
+    latency_ms: number
+    tokens_used: number
+}
+
+export interface MultiEngineResponse {
+    query: string
+    results: EngineResult[]
+    total_cost_usd: number
+    citation_rate: number
+    sota_insights?: Record<string, any>
+}
+

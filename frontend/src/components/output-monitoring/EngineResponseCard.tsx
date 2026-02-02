@@ -1,12 +1,16 @@
-
-import { CheckCircle, XCircle, ExternalLink, Bot } from 'lucide-react'
-import { QueryResult, ENGINE_CONFIG } from './types'
+import { useState } from 'react'
+import { ChevronDown, ChevronRight, Bot, CheckCircle, XCircle, ExternalLink } from 'lucide-react'
+import { ENGINE_CONFIG, QueryResult } from './types'
+import { AdvancedMetrics } from './AdvancedMetrics'
 
 interface EngineResponseCardProps {
     result: QueryResult
+    brandName?: string
 }
 
-export function EngineResponseCard({ result }: EngineResponseCardProps) {
+export function EngineResponseCard({ result, brandName }: EngineResponseCardProps) {
+    const [isExpanded, setIsExpanded] = useState(true)
+
     const hasCitations = result.citations.length > 0
     const hasError = !!result.error
     const config = ENGINE_CONFIG[result.engine] || {
@@ -17,9 +21,16 @@ export function EngineResponseCard({ result }: EngineResponseCardProps) {
 
     return (
         <div className="group border border-border bg-surface/20 rounded-xl overflow-hidden hover:border-text-secondary/30 transition-all">
-            {/* Minimal Header */}
-            <div className="px-6 py-4 flex items-center justify-between bg-surface/30">
+            {/* Header (Clickable for toggle) */}
+            <div
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="px-6 py-4 flex items-center justify-between bg-surface/30 cursor-pointer hover:bg-surface/50 transition-colors select-none"
+            >
                 <div className="flex items-center gap-3">
+                    <div className="text-text-secondary group-hover:text-text-primary transition-colors">
+                        {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                    </div>
+
                     <div className={`p-2 rounded-lg ${config.bgColor}`}>
                         <Bot className={`w-4 h-4 ${config.color}`} />
                     </div>
@@ -45,57 +56,66 @@ export function EngineResponseCard({ result }: EngineResponseCardProps) {
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="p-6">
-                {hasError ? (
-                    <div className="p-4 bg-red-900/10 border border-red-900/20 rounded-lg">
-                        <p className="text-sm text-red-400">
-                            <strong>Error:</strong> {result.error}
-                        </p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="prose prose-invert prose-sm max-w-none">
-                            <p className="text-text-primary leading-relaxed whitespace-pre-wrap">
-                                {result.response}
+            {/* Content (Collapsible) */}
+            {isExpanded && (
+                <div className="p-6 border-t border-border/50 animate-in slide-in-from-top-2 fade-in duration-200">
+                    {hasError ? (
+                        <div className="p-4 bg-red-900/10 border border-red-900/20 rounded-lg">
+                            <p className="text-sm text-red-400">
+                                <strong>Error:</strong> {result.error}
                             </p>
                         </div>
-
-                        {/* Citations (More Prominent) */}
-                        {hasCitations && (
-                            <div className="mt-6 pt-5 border-t border-border">
-                                <h5 className="text-xs font-bold text-emerald-400 uppercase tracking-wide mb-3 flex items-center gap-2">
-                                    <ExternalLink className="w-3 h-3" />
-                                    Sources Found
-                                </h5>
-                                <div className="grid gap-2">
-                                    {result.citations.map((citation, i) => (
-                                        <a
-                                            key={i}
-                                            href={citation.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="block p-3 bg-surface border border-border hover:border-emerald-500/30 rounded-lg transition-colors group/link"
-                                        >
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div className="text-xs font-mono text-primary group-hover/link:text-primary/70 break-all">
-                                                    {citation.url}
-                                                </div>
-                                                <ExternalLink className="w-3 h-3 text-text-secondary group-hover/link:text-emerald-400" />
-                                            </div>
-                                            {citation.snippet && (
-                                                <p className="mt-1 text-xs text-text-secondary line-clamp-1 italic">
-                                                    "...{citation.snippet}..."
-                                                </p>
-                                            )}
-                                        </a>
-                                    ))}
+                    ) : (
+                        <>
+                            {/* Advanced Metrics Visualization */}
+                            {result.analysis && (
+                                <div className="mb-6">
+                                    <AdvancedMetrics analysis={result.analysis} brandName={brandName} />
                                 </div>
+                            )}
+
+                            <div className="prose prose-invert prose-sm max-w-none">
+                                <p className="text-text-primary leading-relaxed whitespace-pre-wrap">
+                                    {result.response}
+                                </p>
                             </div>
-                        )}
-                    </>
-                )}
-            </div>
+
+                            {/* Citations (More Prominent) */}
+                            {hasCitations && (
+                                <div className="mt-6 pt-5 border-t border-border">
+                                    <h5 className="text-xs font-bold text-emerald-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+                                        <ExternalLink className="w-3 h-3" />
+                                        Sources Found
+                                    </h5>
+                                    <div className="grid gap-2">
+                                        {result.citations.map((citation, i) => (
+                                            <a
+                                                key={i}
+                                                href={citation.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block p-3 bg-surface border border-border hover:border-emerald-500/30 rounded-lg transition-colors group/link"
+                                            >
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="text-xs font-mono text-primary group-hover/link:text-primary/70 break-all">
+                                                        {citation.url}
+                                                    </div>
+                                                    <ExternalLink className="w-3 h-3 text-text-secondary group-hover/link:text-emerald-400" />
+                                                </div>
+                                                {citation.snippet && (
+                                                    <p className="mt-1 text-xs text-text-secondary line-clamp-1 italic">
+                                                        "...{citation.snippet}..."
+                                                    </p>
+                                                )}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
         </div>
     )
 }

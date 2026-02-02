@@ -1,0 +1,92 @@
+import { CheckCircle, ThumbsUp, Minus, Target } from 'lucide-react'
+import { MultiEngineResponse } from '../../types'
+import { aggregateInsights } from '../output-monitoring/insightUtils'
+
+interface AnalysisSummaryProps {
+    results: MultiEngineResponse
+}
+
+export function AnalysisSummary({ results }: AnalysisSummaryProps) {
+    const citedCount = results.results.filter(r => r.citations.length > 0).length
+    const totalEngines = results.results.length
+
+    // Client-side "AI" Analysis
+    const insights = aggregateInsights(results.results)
+
+    return (
+        <div className="rounded-xl border border-border bg-surface/50 overflow-hidden shadow-sm">
+            {/* Header: Query */}
+            <div className="p-6 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                    <h3 className="text-xs font-medium text-text-secondary uppercase tracking-wider">Analysis Report</h3>
+                    <p className="text-xl font-semibold text-text-primary leading-tight">
+                        "{results.query}"
+                    </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-text-secondary">
+                    <Target className="w-4 h-4" />
+                    <span>Multi-Engine Audit</span>
+                </div>
+            </div>
+
+            {/* Metrics Grid (Compact Row) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border bg-surface/30">
+                {/* 1. Visibility */}
+                <div className="p-6 flex flex-col justify-center">
+                    <div className="flex items-start justify-between mb-2">
+                        <span className="text-sm font-medium text-text-secondary">Visibility</span>
+                        <CheckCircle className={`w-4 h-4 ${results.citation_rate > 0.5 ? 'text-emerald-500' : 'text-text-secondary'}`} />
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold text-text-primary">
+                            {Math.round(results.citation_rate * 100)}%
+                        </span>
+                        <span className="text-xs text-text-secondary">citation rate</span>
+                    </div>
+                    <div className="mt-2 text-xs text-text-secondary">
+                        {citedCount} / {totalEngines} engines
+                    </div>
+                </div>
+
+                {/* 2. Sentiment */}
+                <div className="p-6 flex flex-col justify-center">
+                    <div className="flex items-start justify-between mb-2">
+                        <span className="text-sm font-medium text-text-secondary">Sentiment</span>
+                        {insights.sentimentLabel === 'Positive' ? <ThumbsUp className="w-4 h-4 text-blue-500" /> : <Minus className="w-4 h-4 text-text-secondary" />}
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <span className={`text-2xl font-bold ${insights.sentimentLabel === 'Positive' ? 'text-blue-400' :
+                            insights.sentimentLabel === 'Negative' ? 'text-red-400' : 'text-text-secondary'
+                            }`}>
+                            {insights.sentimentLabel}
+                        </span>
+                    </div>
+                    <div className="mt-3 w-full bg-surface-highlight h-1.5 rounded-full overflow-hidden">
+                        <div
+                            className={`h-full rounded-full ${insights.sentimentScore > 60 ? 'bg-blue-500' :
+                                insights.sentimentScore < 40 ? 'bg-red-500' : 'bg-text-secondary'
+                                }`}
+                            style={{ width: `${insights.sentimentScore}%` }}
+                        />
+                    </div>
+                </div>
+
+                {/* 3. Themes */}
+                <div className="p-6 flex flex-col justify-center">
+                    <span className="text-sm font-medium text-text-secondary mb-3">Key Themes</span>
+                    <div className="flex flex-wrap gap-1.5">
+                        {insights.keyThemes.length > 0 ? (
+                            insights.keyThemes.slice(0, 3).map((theme, i) => (
+                                <span key={`${theme}-${i}`} className="px-2 py-1 bg-surface-highlight border border-border text-text-secondary text-[10px] uppercase font-medium rounded">
+                                    {theme}
+                                </span>
+                            ))
+                        ) : (
+                            <span className="text-xs text-text-secondary italic">No specific themes detected</span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}

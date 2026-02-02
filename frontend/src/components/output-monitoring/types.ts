@@ -1,3 +1,5 @@
+import { AnalysisData } from '../../types'
+
 /**
  * Types for Output Monitoring feature.
  */
@@ -5,7 +7,7 @@
 export interface Citation {
     url: string
     snippet: string
-    position: number
+    position?: number // Made optional to match API
 }
 
 export interface QueryResult {
@@ -16,6 +18,17 @@ export interface QueryResult {
     cost_usd: number
     latency_ms: number
     error?: string | null
+    analysis?: AnalysisData
+}
+
+export interface SOTAInsights {
+    share_of_voice: Record<string, number>
+    sentiment_profile: {
+        brand_sentiment: number
+        industry_benchmark: number
+        label: string
+    }
+    key_takeaways: string[]
 }
 
 export interface MultiEngineResponse {
@@ -23,6 +36,7 @@ export interface MultiEngineResponse {
     results: QueryResult[]
     total_cost_usd: number
     citation_rate: number
+    sota_insights?: Record<string, any> // Relaxed type for MVP flexibility
 }
 
 export interface EngineInfo {

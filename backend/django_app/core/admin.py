@@ -1,5 +1,17 @@
 from django.contrib import admin
-from .models import ScanJob, LLMInteraction
+from .models import ScanJob, LLMInteraction, AppUser, Product
+
+@admin.register(AppUser)
+class AppUserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'created_at')
+    search_fields = ('username',)
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ('name', 'domain', 'user', 'created_at', 'target_region')
+    list_filter = ('target_region', 'default_mode')
+    search_fields = ('name', 'domain')
+    readonly_fields = ('created_at',)
 
 @admin.register(ScanJob)
 class ScanJobAdmin(admin.ModelAdmin):

@@ -5,7 +5,7 @@ Extracts key topics from page content and generates test queries
 that users might ask AI engines about the content.
 """
 import re
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Any
 from urllib.parse import urlparse
 
 from .prompts import QUERY_TEMPLATES
@@ -119,25 +119,75 @@ def generate_queries(
     
     queries = []
     
-    for topic in topics[:5]:  # Use top 5 topics
-        topic_name = topic["name"]
-        confidence = topic["confidence"]
-        
-        for query_type in query_types:
-            if query_type in QUERY_TEMPLATES:
-                # Use first template for each type
-                template = QUERY_TEMPLATES[query_type][0]
-                query_text = template.format(topic=topic_name)
-                
-                queries.append({
-                    "query": query_text,
-                    "topic": topic_name,
-                    "type": query_type,
-                    "priority": round(confidence * _get_type_weight(query_type), 2)
-                })
+from .analysis.models import BrandProfile
+
+def generate_sota_queries(
+    profile: BrandProfile,
+    max_queries: int = 10
+) -> List[Dict[str, Any]]:
+    """
+    Generate strategic, persona-based queries using the Brand Profile.
     
-    # Sort by priority and limit
-    queries.sort(key=lambda x: x["priority"], reverse=True)
+    Args:
+        profile: The extracted BrandProfile.
+        max_queries: Limit of queries.
+        
+    Returns:
+        List of query dictionaries.
+    """
+    queries = []
+    brand = profile.brand_name
+    
+    # 1. Competitive/Comparison
+    for comp in profile.primary_competitors[:3]:
+        queries.append({
+            "query": f"{brand} vs {comp}",
+            "type": "comparison",
+            "priority": 1.0,
+            "description": f"Check competitive positioning against {comp}"
+        })
+        queries.append({
+            "query": f"Is {brand} better than {comp}?",
+            "type": "comparison",
+            "priority": 0.9
+        })
+
+    # 2. Persona-Based (High Intent)
+    for audience in profile.target_audience[:2]:
+        queries.append({
+            "query": f"Best {profile.industry} for {audience}",
+            "type": "recommendation",
+            "priority": 0.95,
+            "description": f"Check if engines recommend {brand} for {audience}"
+        })
+
+    # 3. Value-Prop Specific
+    if profile.key_value_props:
+        prop = profile.key_value_props[0]
+        queries.append({
+            "query": f"Which tool is best for {prop}?",
+            "type": "features",
+            "priority": 0.85
+        })
+
+    # 4. Reddit/Pulse Speculative Queries
+    # These are intended to be run against Search-enabled engines
+    queries.append({
+        "query": f"reddit sentiment {brand} {profile.industry}",
+        "type": "pulse",
+        "priority": 0.8,
+        "description": "Extract social proof and developer sentiment"
+    })
+
+    # 5. Core Identity
+    queries.append({
+        "query": f"What is {brand}?",
+        "type": "definition",
+        "priority": 0.5
+    })
+
+    # Sort and return
+    queries.sort(key=lambda x: x.get("priority", 0), reverse=True)
     return queries[:max_queries]
 
 

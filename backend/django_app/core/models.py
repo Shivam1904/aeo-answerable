@@ -20,6 +20,18 @@ class Product(models.Model):
     name = models.CharField(max_length=200)
     domain = models.URLField(max_length=500, help_text="The main domain of the product (e.g., https://example.com)")
     default_mode = models.CharField(max_length=20, default='fast', choices=[('fast', 'Fast'), ('rendered', 'Rendered')])
+    
+    # New Fields for Competitor Analysis
+    business_bio = models.TextField(blank=True, default="")
+    is_bio_ai_generated = models.BooleanField(default=False)
+    target_region = models.CharField(max_length=100, default="Global")
+    target_audience_age = models.CharField(max_length=50, default="All")
+    gender_preference = models.CharField(max_length=20, default="All")
+    
+    # Persistent Analysis
+    competitors = models.JSONField(null=True, blank=True, default=list, help_text="List of top 5 competitors")
+    suggested_queries = models.JSONField(null=True, blank=True, default=list, help_text="Persisted strategic questions")
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -100,6 +112,9 @@ class LLMInteraction(models.Model):
     
     # Context
     metadata = models.JSONField(default=dict, blank=True, help_text="Extra context like job_id, user_id, etc.")
+    
+    # Advanced Analysis (SoV, Sentiment, etc.)
+    analysis_data = models.JSONField(null=True, blank=True, help_text="Structured analysis of the response (SoV, Sentiment, Rank, etc.)")
 
     class Meta:
         ordering = ['-timestamp']

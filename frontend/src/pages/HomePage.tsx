@@ -117,7 +117,7 @@ export default function HomePage() {
         if (currentView.type === 'metrics') return <SiteMetrics />
         if (currentView.type === 'monitoring') {
             const siteUrl = latestScan?.result?.pages?.length > 0 ? new URL(latestScan.result.pages[0].url).origin : ''
-            return siteUrl ? <OutputMonitoring targetUrl={siteUrl} /> : <div>No URL available for monitoring.</div>
+            return siteUrl ? <OutputMonitoring targetUrl={siteUrl} productId={product.id} /> : <div>No URL available for monitoring.</div>
         }
 
         if (currentView.type === 'page-detail') {

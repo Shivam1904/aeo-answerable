@@ -1,22 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useRef } from 'react'
 import { Sparkles, Play, Loader2, Check, TrendingUp, Heart, Hash, ChevronRight, AlertCircle } from 'lucide-react'
-import { MultiEngineResponse, ENGINE_CONFIG } from './types'
-
-interface SmartPrompt {
-    id: string
-    query: string
-    category: 'brand' | 'product' | 'comparison' | 'how-to' | 'reviews' | 'pricing'
-    priority: 'high' | 'medium' | 'low'
-    description: string
-    expectedInsight: string
-}
-
-interface PromptResult {
-    prompt: SmartPrompt
-    result: MultiEngineResponse | null
-    isLoading: boolean
-    error?: string
-}
+import { MultiEngineResponse, ENGINE_CONFIG, SmartPrompt, PromptResult } from '../../types'
+import { useSmartPrompts } from '../../hooks/useSmartPrompts'
 
 interface SmartPromptsProps {
     targetUrl: string
@@ -42,148 +27,28 @@ const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
     'low': { label: 'Low Impact', color: 'text-zinc-400' },
 }
 
-function generateSmartPrompts(brandName: string, productKeywords: string[] = []): SmartPrompt[] {
-    const brand = brandName.charAt(0).toUpperCase() + brandName.slice(1).toLowerCase()
-    const keywords = productKeywords.length > 0 ? productKeywords : ['product', 'service', 'solution']
-    const mainKeyword = keywords[0]
-
-    return [
-        {
-            id: 'brand-awareness',
-            query: `What is ${brand}?`,
-            category: 'brand',
-            priority: 'high',
-            description: 'Tests if AI knows your brand exists',
-            expectedInsight: 'Brand visibility & recognition'
-        },
-        {
-            id: 'brand-reputation',
-            query: `Is ${brand} a good company?`,
-            category: 'reviews',
-            priority: 'high',
-            description: 'Tests sentiment and reputation',
-            expectedInsight: 'Brand sentiment score'
-        },
-        {
-            id: 'product-discovery',
-            query: `Best ${mainKeyword} tools in 2025`,
-            category: 'product',
-            priority: 'high',
-            description: 'Tests if you appear in category searches',
-            expectedInsight: 'Position in category rankings'
-        },
-        {
-            id: 'comparison',
-            query: `${brand} alternatives`,
-            category: 'comparison',
-            priority: 'medium',
-            description: 'Tests how you compare to competitors',
-            expectedInsight: 'Competitive positioning'
-        },
-        {
-            id: 'how-to',
-            query: `How to use ${brand}?`,
-            category: 'how-to',
-            priority: 'medium',
-            description: 'Tests content discovery for your product',
-            expectedInsight: 'Content citation rate'
-        },
-        {
-            id: 'pricing',
-            query: `${brand} pricing`,
-            category: 'pricing',
-            priority: 'low',
-            description: 'Tests if pricing info is discoverable',
-            expectedInsight: 'Information accuracy'
-        },
-    ]
-}
-
-export function SmartPrompts({ 
-    targetUrl, 
-    brandName, 
+export function SmartPrompts({
+    targetUrl,
+    brandName,
     productKeywords = [],
     selectedEngines,
-    onResultsUpdate 
+    onResultsUpdate
 }: SmartPromptsProps) {
-    const [prompts] = useState<SmartPrompt[]>(() => 
-        generateSmartPrompts(brandName, productKeywords)
-    )
-    const [promptResults, setPromptResults] = useState<Map<string, PromptResult>>(new Map())
-    const [runningAll, setRunningAll] = useState(false)
-
-    // Notify parent of results changes
-    useEffect(() => {
-        if (onResultsUpdate) {
-            onResultsUpdate(Array.from(promptResults.values()))
-        }
-    }, [promptResults, onResultsUpdate])
-
-    const runPrompt = async (prompt: SmartPrompt) => {
-        // Set loading state
-        setPromptResults(prev => new Map(prev).set(prompt.id, {
-            prompt,
-            result: null,
-            isLoading: true
-        }))
-
-        try {
-            const response = await fetch('/api/output-monitoring/query', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: prompt.query,
-                    target_url: targetUrl,
-                    engines: selectedEngines
-                })
-            })
-
-            if (!response.ok) {
-                throw new Error('Failed to get response')
-            }
-
-            const data: MultiEngineResponse = await response.json()
-            
-            setPromptResults(prev => new Map(prev).set(prompt.id, {
-                prompt,
-                result: data,
-                isLoading: false
-            }))
-        } catch (error: any) {
-            setPromptResults(prev => new Map(prev).set(prompt.id, {
-                prompt,
-                result: null,
-                isLoading: false,
-                error: error.message
-            }))
-        }
-    }
-
-    const runAllPrompts = async () => {
-        setRunningAll(true)
-        
-        // Run prompts sequentially to avoid rate limits
-        for (const prompt of prompts) {
-            if (!promptResults.get(prompt.id)?.result) {
-                await runPrompt(prompt)
-                // Small delay between requests
-                await new Promise(resolve => setTimeout(resolve, 500))
-            }
-        }
-        
-        setRunningAll(false)
-    }
-
-    const getPromptStatus = (promptId: string) => {
-        const result = promptResults.get(promptId)
-        if (!result) return 'pending'
-        if (result.isLoading) return 'loading'
-        if (result.error) return 'error'
-        if (result.result) return 'complete'
-        return 'pending'
-    }
-
-    const completedCount = Array.from(promptResults.values()).filter(r => r.result).length
+    const {
+        prompts,
+        promptResults,
+        runningAll,
+        runPrompt,
+        runAllPrompts,
+        getPromptStatus,
+        completedCount
+    } = useSmartPrompts({
+        brandName,
+        productKeywords,
+        targetUrl,
+        selectedEngines,
+        onResultsUpdate
+    })
 
     return (
         <div className="space-y-6">
@@ -200,7 +65,7 @@ export function SmartPrompts({
                         </p>
                     </div>
                 </div>
-                
+
                 {/* Run All Button */}
                 <button
                     onClick={runAllPrompts}
@@ -229,7 +94,7 @@ export function SmartPrompts({
             {/* Progress Bar */}
             {completedCount > 0 && (
                 <div className="w-full bg-zinc-800 rounded-full h-2">
-                    <div 
+                    <div
                         className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
                         style={{ width: `${(completedCount / prompts.length) * 100}%` }}
                     />
@@ -247,13 +112,12 @@ export function SmartPrompts({
                     return (
                         <div
                             key={prompt.id}
-                            className={`p-5 border rounded-xl transition-all ${
-                                status === 'complete' 
-                                    ? 'border-emerald-500/30 bg-emerald-900/10' 
-                                    : status === 'error'
+                            className={`p-5 border rounded-xl transition-all ${status === 'complete'
+                                ? 'border-emerald-500/30 bg-emerald-900/10'
+                                : status === 'error'
                                     ? 'border-red-500/30 bg-red-900/10'
                                     : 'border-zinc-800 bg-zinc-900/30 hover:border-zinc-700'
-                            }`}
+                                }`}
                         >
                             {/* Header */}
                             <div className="flex items-start justify-between mb-3">
@@ -318,7 +182,7 @@ export function SmartPrompts({
 function PromptResultPreview({ result, prompt }: { result: MultiEngineResponse; prompt: SmartPrompt }) {
     const citedEngines = result.results.filter(r => r.citations.length > 0)
     const avgSentiment = calculateSentiment(result.results.map(r => r.response).join(' '))
-    
+
     return (
         <div className="space-y-3">
             {/* Quick Metrics */}
@@ -352,15 +216,14 @@ function PromptResultPreview({ result, prompt }: { result: MultiEngineResponse; 
 
             {/* Engine breakdown */}
             <div className="flex flex-wrap gap-2">
-                {result.results.map(r => {
+                {result.results.map((r, i) => {
                     const config = ENGINE_CONFIG[r.engine] || { name: r.engine, color: 'text-zinc-400', bgColor: 'bg-zinc-500/10' }
                     const cited = r.citations.length > 0
                     return (
                         <span
-                            key={r.engine}
-                            className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
-                                cited ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-800 text-zinc-500'
-                            }`}
+                            key={`${r.engine}-${i}`}
+                            className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${cited ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-800 text-zinc-500'
+                                }`}
                         >
                             {cited ? <Check className="w-3 h-3" /> : null}
                             {config.name}
@@ -376,19 +239,19 @@ function PromptResultPreview({ result, prompt }: { result: MultiEngineResponse; 
 function calculateSentiment(text: string): number {
     const positiveWords = ['great', 'excellent', 'good', 'best', 'amazing', 'love', 'recommend', 'helpful', 'powerful', 'innovative', 'reliable', 'trusted', 'leading', 'popular']
     const negativeWords = ['bad', 'poor', 'worst', 'terrible', 'hate', 'avoid', 'expensive', 'complicated', 'difficult', 'limited', 'outdated', 'issues', 'problems']
-    
+
     const words = text.toLowerCase().split(/\s+/)
     let positive = 0
     let negative = 0
-    
+
     words.forEach(word => {
         if (positiveWords.some(pw => word.includes(pw))) positive++
         if (negativeWords.some(nw => word.includes(nw))) negative++
     })
-    
+
     const total = positive + negative
     if (total === 0) return 50
-    
+
     return Math.round((positive / total) * 100)
 }
 
@@ -397,9 +260,9 @@ function calculatePosition(result: MultiEngineResponse): string {
     const positions = result.results
         .filter(r => r.citations.length > 0)
         .flatMap(r => r.citations.map(c => c.position))
-    
+
     if (positions.length === 0) return '-'
-    
+
     const avg = positions.reduce((a, b) => a + b, 0) / positions.length
     return avg.toFixed(1)
 }

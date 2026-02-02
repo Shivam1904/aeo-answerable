@@ -12,6 +12,9 @@ def main():
     
     env_path = Path(__file__).resolve().parent.parent / '.env'
     load_dotenv(env_path)
+
+    # Add parent path to import 'aeo'
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
     
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "aeo_project.settings")
     try:
