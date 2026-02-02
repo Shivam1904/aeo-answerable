@@ -25,7 +25,7 @@ export function ProductForm({ initialData, onSubmit, onCancel, isSubmitting }: P
     const [formData, setFormData] = useState<ProductFormData>({
         name: '',
         domain: '',
-        default_mode: 'fast',
+        default_mode: 'rendered',
         profile: {
             business_bio: '',
             target_region: 'Global',
@@ -39,7 +39,7 @@ export function ProductForm({ initialData, onSubmit, onCancel, isSubmitting }: P
             setFormData({
                 name: initialData.name,
                 domain: initialData.domain,
-                default_mode: initialData.default_mode || 'fast',
+                default_mode: initialData.default_mode || 'rendered',
                 profile: {
                     business_bio: initialData.business_bio || '',
                     target_region: initialData.target_region || 'Global',
@@ -172,7 +172,8 @@ export function ProductForm({ initialData, onSubmit, onCancel, isSubmitting }: P
                     </div>
                 </div>
 
-                {/* Mode Selection */}
+                {/* Mode Selection - DISABLED: Defaulting to Rendered mode as per user request (02/02/2026) */}
+                {/* 
                 <div>
                     <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 block">Audit Mode</label>
                     <div className="grid grid-cols-2 gap-2 p-1 bg-background border border-border rounded-lg">
@@ -198,6 +199,7 @@ export function ProductForm({ initialData, onSubmit, onCancel, isSubmitting }: P
                         </button>
                     </div>
                 </div>
+                */}
             </div>
 
             {/* Sticky Footer */}
