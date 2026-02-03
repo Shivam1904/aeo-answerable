@@ -61,6 +61,8 @@ export function useProducts(userId: number | null) {
         try {
             await api.products.delete(id)
             setProducts(prev => prev.filter(p => p.id !== id))
+            // Ensure we are fully synced, though local filter is fast
+            await loadProducts()
             return true
         } catch (err: any) {
             setError(err.message || 'Failed to delete product')

@@ -7,9 +7,10 @@ import { ResultsDisplay } from './ResultsDisplay'
 interface HistorySidebarProps {
     onSelect?: (query: string) => void // Optional now as we expand inline
     currentQuery?: string
+    productId?: string | number
 }
 
-export function HistorySidebar({ onSelect, currentQuery }: HistorySidebarProps) {
+export function HistorySidebar({ onSelect, currentQuery, productId }: HistorySidebarProps) {
     const [history, setHistory] = useState<HistoryItem[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [expandedItem, setExpandedItem] = useState<string | null>(null)
@@ -18,10 +19,10 @@ export function HistorySidebar({ onSelect, currentQuery }: HistorySidebarProps) 
 
     useEffect(() => {
         loadHistory()
-    }, [])
+    }, [productId])
 
     const loadHistory = () => {
-        api.monitoring.getHistory()
+        api.monitoring.getHistory(productId)
             .then(data => setHistory(data))
             .catch(console.error)
             .finally(() => setIsLoading(false))
@@ -107,8 +108,8 @@ export function HistorySidebar({ onSelect, currentQuery }: HistorySidebarProps) 
                             <div
                                 key={`${item.query_text}-${idx}`}
                                 className={`rounded-xl border transition-all overflow-hidden ${isExpanded
-                                        ? 'bg-surface border-indigo-500/30 ring-1 ring-indigo-500/30 shadow-lg'
-                                        : 'bg-surface/20 border-border hover:bg-surface/40'
+                                    ? 'bg-surface border-indigo-500/30 ring-1 ring-indigo-500/30 shadow-lg'
+                                    : 'bg-surface/20 border-border hover:bg-surface/40'
                                     }`}
                             >
                                 <button

@@ -53,8 +53,14 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
                 // Pass page content if available to avoid re-scraping
                 const data = await api.monitoring.analyze(targetUrl, _pageContent, productId)
                 setAnalysisResult(data)
-            } catch (e) {
-                console.error("Analysis failed:", e)
+            } catch (e: any) {
+                // 422 is expected if insufficient content.
+                // Check status (if available from ApiError) or message text
+                if (e.status === 422 || (e.message && e.message.includes('Unprocessable'))) {
+                    console.warn("Analysis skipped (insufficient content to generate questions). Using default templates.")
+                } else {
+                    console.error("Analysis failed:", e)
+                }
             } finally {
                 setIsAnalyzing(false)
             }
@@ -70,7 +76,7 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
         try {
             // Pass brand profile if available for better insights
             const profile = analysisResult?.profile
-            const data = await api.monitoring.query(queryText, targetUrl, engines, profile)
+            const data = await api.monitoring.query(queryText, targetUrl, engines, profile, productId)
             setResults(data)
         } catch (e: any) {
             setError(e.message)
@@ -208,7 +214,7 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
             {/* Tab: History */}
             {activeTab === 'history' && (
                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                    <HistorySidebar />
+                    <HistorySidebar productId={productId} />
                 </div>
             )}
         </div>

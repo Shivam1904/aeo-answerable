@@ -97,19 +97,20 @@ export const api = {
                 body: JSON.stringify({ target_url: targetUrl, page_content: pageContent, product_id: productId })
             }),
 
-        query: (query: string, targetUrl: string, engines: string[], brandProfile?: any): Promise<MultiEngineResponse> =>
+        query: (query: string, targetUrl: string, engines: string[], brandProfile?: any, productId?: string | number): Promise<MultiEngineResponse> =>
             fetchClient('/output-monitoring/query', {
                 method: 'POST',
                 body: JSON.stringify({
                     query,
                     target_url: targetUrl,
                     engines,
-                    brand_profile: brandProfile
+                    brand_profile: brandProfile,
+                    product_id: productId
                 })
             }),
 
-        getHistory: () =>
-            fetchClient('/output-monitoring/history'),
+        getHistory: (productId?: string | number) =>
+            fetchClient(`/output-monitoring/history${productId ? `?product_id=${productId}` : ''}`),
 
         getHistoryDetails: (query: string) =>
             fetchClient(`/output-monitoring/history/details?query=${encodeURIComponent(query)}`),
@@ -130,13 +131,14 @@ export const api = {
             fetchClient('/output-monitoring/competitors/refresh', {
                 method: 'POST',
                 body: JSON.stringify({ product_id: productId })
+            }),
+
+        refreshQueries: (productId: string | number) =>
+            fetchClient('/output-monitoring/queries/refresh', {
+                method: 'POST',
+                body: JSON.stringify({ product_id: productId })
             })
-    },
-    refreshQueries: (productId: string | number) =>
-        fetchClient('/output-monitoring/queries/refresh', {
-            method: 'POST',
-            body: JSON.stringify({ product_id: productId })
-        })
+    }
 };
 
 

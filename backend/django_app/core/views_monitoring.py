@@ -173,6 +173,7 @@ def output_query(request):
     query = request.data.get('query')
     target_url = request.data.get('target_url')
     engines_requested = request.data.get('engines', ['openai', 'anthropic', 'gemini'])
+    product_id = request.data.get('product_id')
     
     if not query or not target_url:
         return Response({'error': 'query and target_url required'}, status=400)
@@ -254,14 +255,23 @@ def output_query(request):
                     # The `target_url` is passed. Maybe we can find product by domain?
                     # Or we just rely on what we have.
                     
-                    # Let's fetch bio if we can.
+                    brand_name = "the brand"
+                    product_bio = ""
+                    
+                    # Try to find product by ID first, then domain
                     from .models import Product
-                    # Try to find product by domain overlap
-                    # Simple check
-                    parsed_domain = target_url.replace('https://', '').replace('http://', '').split('/')[0]
-                    product = Product.objects.filter(domain__icontains=parsed_domain).first()
-                    brand_name = product.name if product else "the brand"
-                    product_bio = product.business_bio if product else ""
+                    product_obj = None
+                    if product_id:
+                         product_obj = Product.objects.filter(pk=product_id).first()
+                    
+                    if not product_obj:
+                        # Simple domain check
+                        parsed_domain = target_url.replace('https://', '').replace('http://', '').split('/')[0]
+                        product_obj = Product.objects.filter(domain__icontains=parsed_domain).first()
+                    
+                    if product_obj:
+                        brand_name = product_obj.name
+                        product_bio = product_obj.business_bio
                     
                     # Create new loop for analysis
                     analysis_loop = asyncio.new_event_loop()
@@ -294,7 +304,8 @@ def output_query(request):
                     'latency_ms': r.latency_ms,
                     'success': True,
                     'metadata': {'target_url': target_url},
-                    'analysis_data': analysis
+                    'analysis_data': analysis,
+                    'product_id': product_id # Pass explicitly
                 }
             )
             
@@ -394,15 +405,22 @@ def get_query_history(request):
     """
     Get list of unique past queries.
     Group by query_text and return latest timestamp.
+    Accepts product_id to filter.
     """
     from .models import LLMInteraction
     from django.db.models import Max, Count, F, Q
+    
+    product_id = request.query_params.get('product_id')
+    
+    queryset = LLMInteraction.objects.all()
+    if product_id:
+        queryset = queryset.filter(product_id=product_id)
     
     # Simple grouping by query_text
     # We want: query_text, last_run, engine_count
     
     # 1. Get unique queries with annotation
-    history = LLMInteraction.objects.values('query_text').annotate(
+    history = queryset.values('query_text').annotate(
         last_run=Max('timestamp'),
         engine_count=Count('id'),
         citation_count=Count('id', filter=Q(response_text__icontains='http')) # Rough proxy for citations if we don't have json field easily accessible in values()

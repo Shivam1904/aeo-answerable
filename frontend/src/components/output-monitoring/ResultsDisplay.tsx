@@ -1,6 +1,6 @@
 
 import { Sparkles } from 'lucide-react'
-import { MultiEngineResponse } from './types'
+import { MultiEngineResponse } from '../../types'
 import { EngineResponseCard } from './EngineResponseCard'
 import { AnalysisSummary } from '../results/AnalysisSummary'
 import { CompetitiveAnalysisCard } from '../results/CompetitiveAnalysisCard'
@@ -16,7 +16,7 @@ export function ResultsDisplay({ results }: ResultsDisplayProps) {
             <AnalysisSummary results={results} />
 
             {/* Competitive Intelligence (SOTA) */}
-            {results.sota_insights && (
+            {results.sota_insights && Object.keys(results.sota_insights).length > 0 && (
                 <CompetitiveAnalysisCard sotaInsights={results.sota_insights} />
             )}
 

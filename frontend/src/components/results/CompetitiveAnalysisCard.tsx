@@ -23,7 +23,7 @@ export function CompetitiveAnalysisCard({ sotaInsights }: CompetitiveAnalysisCar
                 <div className="space-y-4">
                     <h4 className="text-sm font-medium text-text-primary">Competitive Visibility</h4>
                     <div className="space-y-3">
-                        {Object.entries(sotaInsights.share_of_voice).map(([brand, score]) => (
+                        {sotaInsights.share_of_voice && Object.entries(sotaInsights.share_of_voice).map(([brand, score]) => (
                             <div key={brand} className="space-y-1">
                                 <div className="flex justify-between text-xs">
                                     <span className="text-text-secondary">{brand}</span>
@@ -48,14 +48,14 @@ export function CompetitiveAnalysisCard({ sotaInsights }: CompetitiveAnalysisCar
                         <div className="space-y-1 relative">
                             <div className="flex justify-between text-xs mb-1">
                                 <span className="font-medium text-text-primary">Your Brand</span>
-                                <span className={sotaInsights.sentiment_profile.brand_sentiment > 50 ? 'text-emerald-400' : 'text-text-secondary'}>
-                                    {sotaInsights.sentiment_profile.brand_sentiment}/100
+                                <span className={sotaInsights.sentiment_profile?.brand_sentiment > 50 ? 'text-emerald-400' : 'text-text-secondary'}>
+                                    {sotaInsights.sentiment_profile?.brand_sentiment || 0}/100
                                 </span>
                             </div>
                             <div className="h-2 bg-surface-highlight rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-emerald-500 rounded-full"
-                                    style={{ width: `${sotaInsights.sentiment_profile.brand_sentiment}%` }}
+                                    style={{ width: `${sotaInsights.sentiment_profile?.brand_sentiment || 0}%` }}
                                 />
                             </div>
                         </div>
@@ -64,12 +64,12 @@ export function CompetitiveAnalysisCard({ sotaInsights }: CompetitiveAnalysisCar
                         <div className="space-y-1 relative">
                             <div className="flex justify-between text-xs mb-1">
                                 <span className="text-text-secondary">Industry Baseline</span>
-                                <span className="text-text-secondary">{sotaInsights.sentiment_profile.industry_benchmark}/100</span>
+                                <span className="text-text-secondary">{sotaInsights.sentiment_profile?.industry_benchmark || 0}/100</span>
                             </div>
                             <div className="h-2 bg-surface-highlight rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-text-secondary/30 rounded-full"
-                                    style={{ width: `${sotaInsights.sentiment_profile.industry_benchmark}%` }}
+                                    style={{ width: `${sotaInsights.sentiment_profile?.industry_benchmark || 0}%` }}
                                 />
                             </div>
                         </div>

@@ -16,6 +16,15 @@ interface PromptTemplatesProps {
 
 export function PromptTemplates({ onSelect, brandName, suggestedQueries, isLoading, onRefresh }: PromptTemplatesProps) {
 
+    // Default Static Templates
+    const STATIC_TEMPLATES = [
+        { id: 't1', query: `What do people think about ${brandName}?`, category: 'Reputation', description: 'General sentiment overview' },
+        { id: 't2', query: `How does ${brandName} compare to top competitors?`, category: 'Competitors', description: 'Head-to-head comparison' },
+        { id: 't3', query: `Is ${brandName} worth the price?`, category: 'Value', description: 'Price/Value assessment' },
+        { id: 't4', query: `What are the pros and cons of ${brandName}?`, category: 'Analysis', description: 'Balanced review' },
+        { id: 't5', query: `Who is the target audience for ${brandName}?`, category: 'Audience', description: 'Market fit analysis' }
+    ]
+
     // Use suggested queries if available, otherwise fallback to static
     const activeTemplates = suggestedQueries && suggestedQueries.length > 0
         ? suggestedQueries.map((q, i) => ({
@@ -24,7 +33,7 @@ export function PromptTemplates({ onSelect, brandName, suggestedQueries, isLoadi
             category: q.type.charAt(0).toUpperCase() + q.type.slice(1),
             description: q.description || 'Strategic Question'
         }))
-        : []
+        : STATIC_TEMPLATES // Fallback to static if no suggestions provided
 
     return (
         <div className="space-y-4">

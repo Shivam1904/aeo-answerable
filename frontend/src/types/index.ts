@@ -62,8 +62,8 @@ export interface QueryResult {
     engine: string
     response: string
     citations: Citation[]
-    error?: string
-    latencyMs?: number
+    error?: string | null
+    latency_ms?: number
     cost_usd?: number
     tokens_used?: number
     analysis?: AnalysisData

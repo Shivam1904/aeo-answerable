@@ -190,13 +190,14 @@ def product_list_create_view(request):
             'gender_preference': product.gender_preference
         }, status=201)
 
-@api_view(['GET', 'PUT'])
+@api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([])
 @permission_classes([AllowAny])
 def get_product_view(request, product_id):
     """
     GET: Get single product details.
     PUT: Update product details.
+    DELETE: Delete key product.
     """
     product = get_object_or_404(Product, pk=product_id)
     
@@ -258,3 +259,7 @@ def get_product_view(request, product_id):
             'id': product.id,
             'message': 'Product updated'
         })
+    
+    elif request.method == 'DELETE':
+        product.delete()
+        return Response({'message': 'Product deleted'}, status=status.HTTP_204_NO_CONTENT)

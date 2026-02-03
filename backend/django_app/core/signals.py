@@ -29,7 +29,8 @@ def log_llm_interaction(sender, interaction_data, **kwargs):
             success=interaction_data.get('success', True),
             error_message=interaction_data.get('error_message'),
             metadata=interaction_data.get('metadata', {}),
-            analysis_data=interaction_data.get('analysis_data', {})
+            analysis_data=interaction_data.get('analysis_data', {}),
+            product_id=interaction_data.get('product_id') # Save the product link
         )
         logger.info(f"Logged LLM interaction for {interaction_data.get('engine')}")
         
