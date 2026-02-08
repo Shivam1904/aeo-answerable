@@ -112,11 +112,41 @@ def product_list_create_view(request):
         if not user_id:
             return Response({'error': 'user_id required'}, status=400)
             
-        products = Product.objects.filter(user_id=user_id).values(
-            'id', 'name', 'domain', 'default_mode', 'created_at',
-            'business_bio', 'is_bio_ai_generated', 'target_region', 'target_audience_age', 'gender_preference'
-        )
-        return Response(list(products))
+        from .models import ScanJob, LLMInteraction
+        
+        products = Product.objects.filter(user_id=user_id)
+        results = []
+        
+        for p in products:
+            # Get last 10 interactions for trend
+            interactions = LLMInteraction.objects.filter(product=p).order_by('-timestamp')[:10]
+            # Use share_of_voice as the primary trend metric
+            trend = [i.analysis_data.get('share_of_voice', 0) for i in interactions]
+            avg_sov = sum(trend) / len(trend) if trend else 0
+            
+            # Get latest scan
+            latest_scan = ScanJob.objects.filter(product=p).order_by('-created_at').first()
+            
+            results.append({
+                'id': p.id,
+                'name': p.name,
+                'domain': p.domain,
+                'default_mode': p.default_mode,
+                'created_at': p.created_at,
+                'business_bio': p.business_bio,
+                'is_bio_ai_generated': p.is_bio_ai_generated,
+                'target_region': p.target_region,
+                'target_audience_age': p.target_audience_age,
+                'gender_preference': p.gender_preference,
+                'stats': {
+                    'avg_citation_rate': round(avg_sov, 1),
+                    'trend': trend[::-1], # Chronological for sparkline
+                    'total_queries': LLMInteraction.objects.filter(product=p).count(),
+                    'last_scan_status': latest_scan.status if latest_scan else 'none'
+                }
+            })
+            
+        return Response(results)
         
     elif request.method == 'POST':
         user_id = request.data.get('user_id')

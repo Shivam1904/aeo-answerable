@@ -103,4 +103,10 @@ export interface Product {
     target_region?: string
     target_audience_age?: string
     gender_preference?: string
+    stats?: {
+        avg_citation_rate: number
+        trend: number[]
+        total_queries: number
+        last_scan_status: string
+    }
 }

@@ -1,5 +1,6 @@
 import { Globe, Pencil, Trash2, Sparkles } from 'lucide-react'
 import { Product } from '../../types'
+import { PerformanceWidget } from './PerformanceWidget'
 
 interface ProductCardProps {
     product: Product
@@ -53,6 +54,16 @@ export function ProductCard({ product, isEditing, onEdit, onDelete, onNavigate }
                         </span>
                     )}
                 </div>
+
+                {/* Performance Widget */}
+                {product.stats && (
+                    <PerformanceWidget
+                        trend={product.stats.trend}
+                        avgCitationRate={product.stats.avg_citation_rate}
+                        totalQueries={product.stats.total_queries}
+                        lastScanStatus={product.stats.last_scan_status}
+                    />
+                )}
             </div>
             <div className="flex gap-3">
                 <button
