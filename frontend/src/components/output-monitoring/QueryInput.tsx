@@ -7,6 +7,7 @@ interface QueryInputProps {
     targetUrl: string
     onSubmit: (query: string, engines: string[]) => Promise<void>
     isLoading: boolean
+    loadingStage?: string
     // Exposed so parent can set query from templates
     query: string
     setQuery: (q: string) => void
@@ -18,6 +19,7 @@ export function QueryInput({
     targetUrl,
     onSubmit,
     isLoading,
+    loadingStage,
     query,
     setQuery,
     selectedEngines,
@@ -90,6 +92,10 @@ export function QueryInput({
                     {/* Bottom Right Indicators */}
                     <div className="absolute bottom-4 right-4 flex items-center gap-4 text-xs text-text-secondary pointer-events-none">
                         <div className="flex items-center gap-1.5 p-1.5 bg-surface/80 rounded backdrop-blur-sm border border-border">
+                            <Zap className="w-3 h-3 text-indigo-400" />
+                            <span>⌘ + Enter</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 p-1.5 bg-surface/80 rounded backdrop-blur-sm border border-border">
                             <Type className="w-3 h-3" />
                             <span>{wordCount} words</span>
                         </div>
@@ -134,7 +140,14 @@ export function QueryInput({
                             className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all shadow-lg shadow-indigo-500/10"
                         >
                             {isLoading ? (
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <div className="flex flex-col items-end">
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    {loadingStage && (
+                                        <span className="absolute -bottom-6 right-0 text-[10px] text-text-secondary whitespace-nowrap animate-pulse">
+                                            {loadingStage}
+                                        </span>
+                                    )}
+                                </div>
                             ) : (
                                 <Zap className="w-4 h-4 fill-current" />
                             )}

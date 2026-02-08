@@ -73,15 +73,20 @@ export function PromptTemplates({ onSelect, brandName, suggestedQueries, isLoadi
                             onClick={() => onSelect(template.query)}
                             className="group flex flex-col items-start gap-2 p-4 bg-surface/50 hover:bg-surface border border-border hover:border-primary/50 rounded-xl transition-all text-left shadow-sm"
                         >
-                            <div className="p-2 bg-indigo-500/10 rounded-lg group-hover:bg-indigo-500/20 transition-colors">
-                                <MessageSquare className="w-4 h-4 text-indigo-400" />
+                            <div className="w-full flex items-center justify-between mb-1">
+                                <div className="p-2 bg-indigo-500/10 rounded-lg group-hover:bg-indigo-500/20 transition-colors">
+                                    <MessageSquare className="w-4 h-4 text-indigo-400" />
+                                </div>
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-indigo-500 rounded p-1">
+                                    <RefreshCw className="w-3 h-3 text-white" />
+                                </div>
                             </div>
 
                             <div>
-                                <div className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors">
+                                <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1">
                                     {template.category} Check
                                 </div>
-                                <div className="text-xs text-text-secondary mt-1 line-clamp-2 group-hover:text-text-secondary/80">
+                                <div className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors line-clamp-2">
                                     "{template.query}"
                                 </div>
                             </div>

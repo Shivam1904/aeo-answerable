@@ -20,6 +20,7 @@ interface OutputMonitoringProps {
 export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTitle: _pageTitle, productId }: OutputMonitoringProps) {
     const [results, setResults] = useState<MultiEngineResponse | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const [loadingStage, setLoadingStage] = useState<string>('')
     const [error, setError] = useState<string | null>(null)
 
     // Tab State
@@ -70,18 +71,24 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
 
     const handleSubmit = async (queryText: string, engines: string[]) => {
         setIsLoading(true)
+        setLoadingStage('Initializing analysis...')
         setError(null)
         setResults(null)
 
         try {
             // Pass brand profile if available for better insights
             const profile = analysisResult?.profile
+
+            setLoadingStage('Fetching AI responses...')
             const data = await api.monitoring.query(queryText, targetUrl, engines, profile, productId)
+
+            setLoadingStage('Processing insights...')
             setResults(data)
         } catch (e: any) {
             setError(e.message)
         } finally {
             setIsLoading(false)
+            setLoadingStage('')
         }
     }
 
@@ -111,34 +118,36 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
                 </div>
 
                 {/* Tabs */}
-                <div className="flex items-center gap-1 border-b border-border mt-6">
-                    <button
-                        onClick={() => setActiveTab('overview')}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview'
-                            ? 'border-indigo-500 text-text-primary'
-                            : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
-                            }`}
-                    >
-                        Overview
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('ask')}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'ask'
-                            ? 'border-indigo-500 text-text-primary'
-                            : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
-                            }`}
-                    >
-                        Ask LLMs
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('history')}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'history'
-                            ? 'border-indigo-500 text-text-primary'
-                            : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
-                            }`}
-                    >
-                        History
-                    </button>
+                <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md pt-4 -mx-4 px-4">
+                    <div className="flex items-center gap-1 border-b border-border">
+                        <button
+                            onClick={() => setActiveTab('overview')}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview'
+                                ? 'border-indigo-500 text-text-primary'
+                                : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
+                                }`}
+                        >
+                            Overview
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('ask')}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'ask'
+                                ? 'border-indigo-500 text-text-primary'
+                                : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
+                                }`}
+                        >
+                            Ask LLMs
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('history')}
+                            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'history'
+                                ? 'border-indigo-500 text-text-primary'
+                                : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
+                                }`}
+                        >
+                            History
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -161,15 +170,18 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
             {activeTab === 'ask' && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
                     {/* Input Area */}
-                    <QueryInput
-                        targetUrl={targetUrl}
-                        onSubmit={handleSubmit}
-                        isLoading={isLoading}
-                        query={query}
-                        setQuery={setQuery}
-                        selectedEngines={selectedEngines}
-                        setSelectedEngines={setSelectedEngines}
-                    />
+                    <div className={results ? "sticky top-[60px] z-10 pt-2" : ""}>
+                        <QueryInput
+                            targetUrl={targetUrl}
+                            onSubmit={handleSubmit}
+                            isLoading={isLoading}
+                            loadingStage={loadingStage}
+                            query={query}
+                            setQuery={setQuery}
+                            selectedEngines={selectedEngines}
+                            setSelectedEngines={setSelectedEngines}
+                        />
+                    </div>
 
                     {/* Error Display */}
                     {error && (
