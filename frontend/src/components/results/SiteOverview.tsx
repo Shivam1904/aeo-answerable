@@ -2,6 +2,7 @@ import { CATEGORY_CONFIG, METRIC_CONFIG } from './config'
 
 interface SiteOverviewProps {
     pages: any[] // We need the full page list to compute averages
+    aiReadinessScore?: number
 }
 
 function SiteScoreRing({ score, size = 160 }: { score: number, size?: number }) {
@@ -76,7 +77,7 @@ function CategoryStat({ config, score }: { config: any, score: number }) {
     )
 }
 
-export function SiteOverview({ pages }: SiteOverviewProps) {
+export function SiteOverview({ pages, aiReadinessScore }: SiteOverviewProps) {
     if (!pages || pages.length === 0) return null
 
     // 1. Calculate Site-Wide Average Score
@@ -121,7 +122,7 @@ export function SiteOverview({ pages }: SiteOverviewProps) {
 
     return (
         <div className="mb-10 p-8 rounded-xl bg-surface/30 border border-border">
-            <div className="flex flex-col lg:flex-row items-start gap-12">
+            <div className="flex flex-col lg:flex-row items-center lg:items-start gap-12">
 
                 {/* Visual Score */}
                 <div className="shrink-0 flex flex-col items-center gap-4">
@@ -133,14 +134,40 @@ export function SiteOverview({ pages }: SiteOverviewProps) {
                     </div>
                 </div>
 
+                {/* NEW: AI Readiness Score (Task 2) */}
+                {aiReadinessScore !== undefined && (
+                    <div className="shrink-0 flex flex-col items-center gap-4 bg-indigo-500/5 p-6 rounded-xl border border-indigo-500/20">
+                        <SiteScoreRing score={aiReadinessScore / 100} size={120} />
+                        <div className="text-center">
+                            <div className="text-sm font-bold text-indigo-400">
+                                AI Readiness
+                            </div>
+                            <div className="text-[10px] uppercase tracking-tighter text-indigo-300 opacity-70">
+                                Integration Status
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Grid Breakdown */}
                 <div className="flex-1 w-full">
-                    <div className="mb-6">
-                        <h2 className="text-xl font-bold text-text-primary mb-2">Site Performance Vitals</h2>
-                        <p className="text-sm text-text-secondary max-w-2xl">
-                            Aggregate performance across all scanned pages. Use this to identify systemic issues
-                            (e.g., if Schema is consistently low across the site).
-                        </p>
+                    <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div className="max-w-xl">
+                            <h2 className="text-xl font-bold text-text-primary mb-2">Site Performance Vitals</h2>
+                            <p className="text-sm text-text-secondary">
+                                Aggregate performance across all scanned pages. Use this to identify systemic issues
+                                (e.g., if Schema is consistently low across the site).
+                            </p>
+                        </div>
+
+                        {/* Task 2 CTA */}
+                        <a
+                            href="#output-monitoring"
+                            className="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition-all transform hover:scale-105 shadow-lg shadow-indigo-600/20 flex items-center gap-2"
+                        >
+                            <span>Verify Visibility</span>
+                            <span className="text-lg">→</span>
+                        </a>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">

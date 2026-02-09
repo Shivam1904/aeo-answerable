@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Terminal, CheckCircle2, Loader2, Server, Globe, FileCode, BrainCircuit } from 'lucide-react'
+import { Terminal, CheckCircle2, Loader2, Globe, BrainCircuit } from 'lucide-react'
 
 const STEPS = [
     { id: 1, text: 'Connecting to Neural Network...', icon: Terminal, delay: 0 },

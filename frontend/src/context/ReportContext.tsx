@@ -11,6 +11,7 @@ export interface PageData {
         structure: { score: number }
         clarity: { score: number }
     }
+    ai_readiness_score?: number
 }
 
 export interface ReportData {
@@ -19,6 +20,8 @@ export interface ReportData {
         errors: number
     }
     pages: PageData[]
+    ai_readiness_score?: number
+    readiness_summary?: Record<string, number>
 }
 
 interface ReportContextType {

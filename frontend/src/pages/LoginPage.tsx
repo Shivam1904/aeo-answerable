@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Bot, Terminal } from 'lucide-react'
+import { ArrowRight, Bot } from 'lucide-react'
 import { api } from '../api'
 import { ThemeToggle } from '../components/common/ThemeToggle'
 

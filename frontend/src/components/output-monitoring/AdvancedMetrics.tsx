@@ -1,5 +1,4 @@
 
-import React from 'react'
 import { AnalysisData } from '../../types'
 import { Trophy, TrendingUp, AlertTriangle, CheckCircle, ThumbsUp, ThumbsDown, Minus } from 'lucide-react'
 
@@ -11,11 +10,11 @@ interface AdvancedMetricsProps {
 export function AdvancedMetrics({ analysis, brandName = "Brand" }: AdvancedMetricsProps) {
     if (!analysis) return null
 
-    const getSentimentColor = (score: number) => {
-        if (score > 20) return 'text-green-500 bg-green-500/10'
-        if (score < -20) return 'text-red-500 bg-red-500/10'
-        return 'text-yellow-500 bg-yellow-500/10'
-    }
+    // const getSentimentColor = (score: number) => {
+    //     if (score > 20) return 'text-green-500 bg-green-500/10'
+    //     if (score < -20) return 'text-red-500 bg-red-500/10'
+    //     return 'text-yellow-500 bg-yellow-500/10'
+    // }
 
     const getRecommendationIcon = (rec: string) => {
         switch (rec?.toLowerCase()) {

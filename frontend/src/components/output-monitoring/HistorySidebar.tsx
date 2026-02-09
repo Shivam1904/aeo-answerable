@@ -10,7 +10,7 @@ interface HistorySidebarProps {
     productId?: string | number
 }
 
-export function HistorySidebar({ onSelect, currentQuery, productId }: HistorySidebarProps) {
+export function HistorySidebar({ onSelect: _onSelect, currentQuery: _currentQuery, productId }: HistorySidebarProps) {
     const [history, setHistory] = useState<HistoryItem[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [expandedItem, setExpandedItem] = useState<string | null>(null)

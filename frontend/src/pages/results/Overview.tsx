@@ -30,7 +30,7 @@ export function Overview({ onScan, isScanning }: OverviewProps) {
                 )}
             </header>
 
-            <SiteOverview pages={data.pages} />
+            <SiteOverview pages={data.pages} aiReadinessScore={data.ai_readiness_score} />
 
             {/* Future: Add more aggregated charts here */}
         </div>

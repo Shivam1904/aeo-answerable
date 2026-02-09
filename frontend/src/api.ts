@@ -1,3 +1,5 @@
+import { Product, MultiEngineResponse } from './types'
+
 const API_BASE = '/api';
 
 class ApiError extends Error {
@@ -39,11 +41,11 @@ async function fetchClient<T>(endpoint: string, options: RequestInit = {}): Prom
 
 export const api = {
     auth: {
-        login: (username: string) =>
+        login: (username: string): Promise<{ user_id: number; username: string }> =>
             fetchClient('/auth/login', { method: 'POST', body: JSON.stringify({ username }) })
     },
     products: {
-        list: (userId: string | number) =>
+        list: (userId: string | number): Promise<Product[]> =>
             fetchClient(`/products?user_id=${userId}`),
 
         create: (
@@ -57,7 +59,7 @@ export const api = {
                 target_audience_age?: string
                 gender_preference?: string
             }
-        ) => fetchClient('/products', {
+        ): Promise<Product> => fetchClient('/products', {
             method: 'POST',
             body: JSON.stringify({
                 user_id: userId,
@@ -68,26 +70,26 @@ export const api = {
             })
         }),
 
-        get: (productId: string | number) =>
+        get: (productId: string | number): Promise<Product> =>
             fetchClient(`/products/${productId}`),
 
-        update: (productId: string | number, data: any) =>
+        update: (productId: string | number, data: any): Promise<Product> =>
             fetchClient(`/products/${productId}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-        getLatestScan: (productId: string | number) =>
+        getLatestScan: (productId: string | number): Promise<{ found: boolean; status?: string; job_id?: string; result?: any; timestamp?: string }> =>
             fetchClient(`/products/${productId}/latest-scan`),
 
-        delete: (productId: string | number) =>
+        delete: (productId: string | number): Promise<{ success: boolean }> =>
             fetchClient(`/products/${productId}`, { method: 'DELETE' })
     },
     scan: {
-        start: (url: string, productId: string | number, mode: 'fast' | 'rendered' = 'fast') =>
+        start: (url: string, productId: string | number, mode: 'fast' | 'rendered' = 'fast'): Promise<{ job_id: string }> =>
             fetchClient('/scan', {
                 method: 'POST',
                 body: JSON.stringify({ url, product_id: productId, mode })
             }),
 
-        getStatus: (jobId: string) =>
+        getStatus: (jobId: string): Promise<{ status: string; result?: any; error?: string; timestamp?: string }> =>
             fetchClient(`/scan/${jobId}`)
     },
     monitoring: {
@@ -109,38 +111,48 @@ export const api = {
                 })
             }),
 
-        getHistory: (productId?: string | number) =>
+        getHistory: (productId?: string | number): Promise<any> =>
             fetchClient(`/output-monitoring/history${productId ? `?product_id=${productId}` : ''}`),
 
-        getHistoryDetails: (query: string) =>
+        getHistoryDetails: (query: string): Promise<any> =>
             fetchClient(`/output-monitoring/history/details?query=${encodeURIComponent(query)}`),
 
-        deleteHistory: (query: string) =>
+        deleteHistory: (query: string): Promise<any> =>
             fetchClient(`/output-monitoring/history/delete?query=${encodeURIComponent(query)}`, { method: 'DELETE' }),
 
-        getBudget: () =>
+        getBudget: (): Promise<any> =>
             fetchClient('/output-monitoring/budget'),
 
-        getEngines: () =>
+        getEngines: (): Promise<any> =>
             fetchClient('/output-monitoring/engines'),
 
-        getSimilarCompanies: (productId: string | number) =>
+        getSimilarCompanies: (productId: string | number): Promise<any> =>
             fetchClient(`/output-monitoring/competitors?product_id=${productId}`),
 
-        refreshCompetitors: (productId: string | number) =>
+        refreshCompetitors: (productId: string | number): Promise<any> =>
             fetchClient('/output-monitoring/competitors/refresh', {
                 method: 'POST',
                 body: JSON.stringify({ product_id: productId })
             }),
 
-        refreshQueries: (productId: string | number) =>
+        refreshQueries: (productId: string | number): Promise<any> =>
             fetchClient('/output-monitoring/queries/refresh', {
                 method: 'POST',
                 body: JSON.stringify({ product_id: productId })
+            }),
+
+        competitiveQuery: (query: string, targetUrls: string[], engines: string[], productId?: string | number): Promise<CompetitiveResponse> =>
+            fetchClient('/output-monitoring/competitive-query', {
+                method: 'POST',
+                body: JSON.stringify({
+                    query,
+                    target_urls: targetUrls,
+                    engines,
+                    product_id: productId
+                })
             })
     }
 };
-
 
 export interface BrandProfile {
     brand_name: string
@@ -162,25 +174,21 @@ export interface AnalysisResponse {
     }[]
 }
 
-export interface Citation {
-    url: string
-    snippet: string
-}
-
-export interface EngineResult {
-    engine: string
-    response: string
-    citations: Citation[]
-    cost_usd: number
-    latency_ms: number
-    tokens_used: number
-}
-
-export interface MultiEngineResponse {
+export interface CompetitiveResponse {
     query: string
-    results: EngineResult[]
-    total_cost_usd: number
-    citation_rate: number
-    sota_insights?: Record<string, any>
+    comparison: Array<{
+        url: string
+        results: any[]
+        engines_cited: number
+        citation_rate: number
+        share_of_voice: number
+    }>
+    total_engines: number
+    action_plan?: Array<{
+        type: string
+        priority: 'high' | 'medium' | 'low'
+        title: string
+        description: string
+        fix_action: string
+    }>
 }
-

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '../api'
-import { SmartPrompt, PromptResult, MultiEngineResponse } from '../types'
+import { SmartPrompt, PromptResult } from '../types'
 
 function generateSmartPrompts(brandName: string, productKeywords: string[] = []): SmartPrompt[] {
     const brand = brandName.charAt(0).toUpperCase() + brandName.slice(1).toLowerCase()

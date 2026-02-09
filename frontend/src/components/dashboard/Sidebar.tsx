@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { LayoutDashboard, BarChart2, FileText, ArrowLeft, ChevronDown, ChevronRight, Search, File } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { LayoutDashboard, BarChart2, FileText, ChevronDown, ChevronRight, Search, File } from 'lucide-react'
 import { useReport } from '../../context/ReportContext'
 
 export type ViewState =
@@ -17,7 +16,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ currentView, onViewChange, hostname, productName }: SidebarProps) {
-    const navigate = useNavigate()
+    // const navigate = useNavigate()
     const { data } = useReport()
     const [isPagesExpanded, setIsPagesExpanded] = useState(true)
     const [pageSearch, setPageSearch] = useState('')

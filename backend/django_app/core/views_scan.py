@@ -18,6 +18,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'
 from aeo.config import Settings
 from aeo.crawler import Crawler
 from aeo.rendered_crawler import RenderedCrawler
+from aeo.readiness import calculate_ai_readiness
 
 # --- Views ---
 
@@ -75,9 +76,14 @@ def run_scan_thread(job_id, url, mode, max_pages):
             
         result = asyncio.run(crawler.scan())
         
+        # Calculate Readiness Score (Integrated Task 2)
+        readiness_data = calculate_ai_readiness(result)
+        
         ScanJob.objects.filter(job_id=job_id).update(
             status='complete',
             result=result,
+            ai_readiness_score=readiness_data['score'],
+            readiness_summary=readiness_data['breakdown'],
             completed_at=timezone.now(),
             pages_scanned=result.get('summary', {}).get('scanned_count', 0)
         )
@@ -101,6 +107,8 @@ def get_scan_status(request, job_id):
     return Response({
         'status': job.status,
         'progress': {'pages_scanned': job.pages_scanned},
+        'ai_readiness_score': job.ai_readiness_score,
+        'readiness_summary': job.readiness_summary,
         'result': job.result,
         'error': job.error,
         'timestamp': job.completed_at or job.created_at
@@ -143,5 +151,7 @@ def get_latest_scan_for_product(request, product_id):
         'job_id': job.job_id,
         'status': job.status,
         'timestamp': job.completed_at,
+        'ai_readiness_score': job.ai_readiness_score,
+        'readiness_summary': job.readiness_summary,
         'result': job.result # Include result so frontend can render immediately
     })

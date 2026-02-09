@@ -62,6 +62,10 @@ class ScanJob(models.Model):
     # Store the large JSON result blob
     result = models.JSONField(null=True, blank=True)
     error = models.TextField(null=True, blank=True)
+
+    # AI Readiness Metrics (Integrated from Roadmap Task 2)
+    ai_readiness_score = models.FloatField(null=True, blank=True, help_text="Calculated readiness score 0-100")
+    readiness_summary = models.JSONField(null=True, blank=True, help_text="Breakdown of readiness score weights")
     
     # Simple progress tracking
     pages_scanned = models.IntegerField(default=0)

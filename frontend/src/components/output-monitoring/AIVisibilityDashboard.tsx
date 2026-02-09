@@ -128,8 +128,8 @@ export function AIVisibilityDashboard({ results, brandName }: AIVisibilityDashbo
                                 <div
                                     key={pos}
                                     className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${Math.round(metrics.avgPosition) === pos
-                                            ? 'bg-indigo-500 text-white'
-                                            : 'bg-zinc-800 text-zinc-500'
+                                        ? 'bg-indigo-500 text-white'
+                                        : 'bg-zinc-800 text-zinc-500'
                                         }`}
                                 >
                                     {pos}
@@ -243,7 +243,7 @@ function calculateMetrics(results: PromptResult[], brandName: string): Visibilit
 
                 // Track positions
                 engineResult.citations.forEach(c => {
-                    if (c.position > 0) allPositions.push(c.position)
+                    if (c.position && c.position > 0) allPositions.push(c.position)
                 })
             }
 
@@ -296,7 +296,7 @@ function calculateMetrics(results: PromptResult[], brandName: string): Visibilit
 }
 
 function calculateOverallSentiment(text: string, brandName: string): number {
-    const lowerText = text.toLowerCase()
+    // const lowerText = text.toLowerCase()
     const lowerBrand = brandName.toLowerCase()
 
     // Find sentences mentioning the brand

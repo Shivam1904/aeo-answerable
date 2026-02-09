@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react'
-import { Building2, Globe, Sparkles, ExternalLink, HelpCircle, RefreshCw } from 'lucide-react'
+import { Building2, Sparkles, ExternalLink, HelpCircle, RefreshCw } from 'lucide-react'
 import { api } from '../../api'
 
 interface Company {

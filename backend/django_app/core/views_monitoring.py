@@ -619,3 +619,86 @@ def refresh_competitors(request):
     except Exception as e:
         print(f"Refresh failed: {e}")
         return Response({'error': str(e)}, status=500)
+from aeo.analysis import generate_action_plan
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def competitive_query(request):
+    """
+    Run the same query against multiple URLs (your site + competitors).
+    """
+    query = request.data.get('query')
+    target_urls = request.data.get('target_urls', []) # List of URLs
+    engines_requested = request.data.get('engines', ['openai', 'anthropic', 'gemini'])
+    product_id = request.data.get('product_id')
+    
+    if not query or not target_urls:
+        return Response({'error': 'query and target_urls required'}, status=400)
+
+    settings = Settings()
+    all_url_results = []
+    
+    # We'll run these in sequence per URL, but engines in parallel for each URL
+    # To keep it safe for rate limits and simple for now.
+    for url in target_urls:
+        engines = []
+        if getattr(django_settings, 'USE_MOCK_LLM', False):
+            engines.append(MockEngine(f"mock-openai-{url}"))
+        else:
+            if 'openai' in engines_requested and settings.openai_api_key:
+                engines.append(create_openai_engine(settings.openai_api_key))
+            if 'anthropic' in engines_requested and settings.anthropic_api_key:
+                engines.append(create_anthropic_engine(settings.anthropic_api_key))
+            if 'gemini' in engines_requested and settings.gemini_api_key:
+                engines.append(create_gemini_engine(settings.gemini_api_key))
+        
+        if not engines:
+            continue
+
+        try:
+            results = asyncio.run(query_multiple_engines(query, url, engines))
+            
+            url_results = []
+            cited_in_engines = 0
+            for r in results:
+                if isinstance(r, QueryResult):
+                    url_results.append({
+                        'engine': r.engine,
+                        'response': r.response,
+                        'citations': [c.dict() for c in r.citations],
+                        'cost_usd': r.cost_usd,
+                        'latency_ms': r.latency_ms
+                    })
+                    if r.citations:
+                        cited_in_engines += 1
+            
+            all_url_results.append({
+                'url': url,
+                'results': url_results,
+                'engines_cited': cited_in_engines,
+                'citation_rate': cited_in_engines / len(url_results) if url_results else 0
+            })
+            
+        except Exception as e:
+            print(f"Competitive query failed for {url}: {e}")
+
+    # Calculate Share of Voice (SoV)
+    total_citations = sum(u['engines_cited'] for u in all_url_results)
+    for u in all_url_results:
+        u['share_of_voice'] = round(u['engines_cited'] / total_citations, 2) if total_citations > 0 else 0
+
+    # Generate Action Plan (Task 4)
+    comparison_data = {
+        'query': query,
+        'comparison': all_url_results
+    }
+    action_plan = generate_action_plan(comparison_data, target_urls[0])
+
+    return Response({
+        'query': query,
+        'comparison': all_url_results,
+        'total_engines': len(engines_requested),
+        'action_plan': action_plan
+    })

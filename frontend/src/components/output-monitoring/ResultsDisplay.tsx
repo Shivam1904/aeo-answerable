@@ -1,12 +1,12 @@
 
 import { Sparkles } from 'lucide-react'
-import { MultiEngineResponse } from '../../types'
 import { EngineResponseCard } from './EngineResponseCard'
 import { AnalysisSummary } from '../results/AnalysisSummary'
 import { CompetitiveAnalysisCard } from '../results/CompetitiveAnalysisCard'
+import { QueryResult } from './types'
 
 interface ResultsDisplayProps {
-    results: MultiEngineResponse
+    results: any // Temporary any to bridge types
 }
 
 export function ResultsDisplay({ results }: ResultsDisplayProps) {
@@ -30,7 +30,7 @@ export function ResultsDisplay({ results }: ResultsDisplayProps) {
                 </div>
 
                 <div className="space-y-4">
-                    {results.results.map((result, i) => (
+                    {results.results.map((result: QueryResult, i: number) => (
                         <EngineResponseCard key={`${result.engine}-${i}`} result={result} brandName="Your Brand" />
                     ))}
                 </div>

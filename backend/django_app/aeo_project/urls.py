@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/output-monitoring/history/details', views_monitoring.get_history_details),
     path('api/output-monitoring/history/delete', views_monitoring.delete_history),
     path('api/output-monitoring/competitors', views_monitoring.get_similar_companies),
+    path('api/output-monitoring/competitive-query', views_monitoring.competitive_query),
     
     # Health
     path('api/health', lambda r: __import__('django.http').HttpResponse('ok')),

@@ -1,25 +1,8 @@
-import { AnalysisData } from '../../types'
+import { MultiEngineResponse as GlobalMultiEngineResponse, QueryResult as GlobalQueryResult, Citation as GlobalCitation } from '../../types'
 
-/**
- * Types for Output Monitoring feature.
- */
-
-export interface Citation {
-    url: string
-    snippet: string
-    position?: number // Made optional to match API
-}
-
-export interface QueryResult {
-    engine: string
-    response: string
-    citations: Citation[]
-    tokens_used: number
-    cost_usd: number
-    latency_ms: number
-    error?: string | null
-    analysis?: AnalysisData
-}
+export type Citation = GlobalCitation
+export type QueryResult = GlobalQueryResult
+export type MultiEngineResponse = GlobalMultiEngineResponse
 
 export interface SOTAInsights {
     share_of_voice: Record<string, number>
@@ -29,14 +12,6 @@ export interface SOTAInsights {
         label: string
     }
     key_takeaways: string[]
-}
-
-export interface MultiEngineResponse {
-    query: string
-    results: QueryResult[]
-    total_cost_usd: number
-    citation_rate: number
-    sota_insights?: Record<string, any> // Relaxed type for MVP flexibility
 }
 
 export interface EngineInfo {

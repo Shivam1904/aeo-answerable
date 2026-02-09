@@ -44,7 +44,7 @@ export default function HomePage() {
                     // Running/Pending
                     setStatus('loading')
                     // Start polling
-                    pollScan(scan.job_id)
+                    if (scan.job_id) pollScan(scan.job_id)
                 }
             } else {
                 console.log('No scan found, auto-starting...')
@@ -61,7 +61,7 @@ export default function HomePage() {
         try {
             const res = await api.scan.start(p.domain, p.id, p.default_mode || 'fast')
             setLatestScan({ status: 'running', job_id: res.job_id })
-            pollScan(res.job_id)
+            if (res.job_id) pollScan(res.job_id)
         } catch (e: any) {
             console.error(e)
             setError('Failed to start auto-scan')
@@ -73,12 +73,13 @@ export default function HomePage() {
         const interval = setInterval(async () => {
             try {
                 const res = await api.scan.getStatus(jobId)
-                if (res.status === 'complete') {
-                    setLatestScan({ found: true, result: res.result, status: 'complete', timestamp: res.timestamp })
+                if (res.status === 'complete' && res.result) {
+                    setLatestScan({ found: true, result: res.result, status: 'complete', timestamp: res.timestamp || '' })
                     setStatus('complete')
                     clearInterval(interval)
                 } else if (res.status === 'error') {
                     setStatus('error')
+                    setError(res.error || 'Scan failed')
                     clearInterval(interval)
                 }
             } catch (e) {

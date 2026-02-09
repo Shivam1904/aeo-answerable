@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { Sparkles, Play, Loader2, Check, TrendingUp, Heart, Hash, ChevronRight, AlertCircle } from 'lucide-react'
 import { MultiEngineResponse, ENGINE_CONFIG, SmartPrompt, PromptResult } from '../../types'
 import { useSmartPrompts } from '../../hooks/useSmartPrompts'
@@ -179,7 +178,7 @@ export function SmartPrompts({
 }
 
 // Sub-component for result preview
-function PromptResultPreview({ result, prompt }: { result: MultiEngineResponse; prompt: SmartPrompt }) {
+function PromptResultPreview({ result, prompt: _prompt }: { result: MultiEngineResponse; prompt: SmartPrompt }) {
     const citedEngines = result.results.filter(r => r.citations.length > 0)
     const avgSentiment = calculateSentiment(result.results.map(r => r.response).join(' '))
 
@@ -261,8 +260,9 @@ function calculatePosition(result: MultiEngineResponse): string {
         .filter(r => r.citations.length > 0)
         .flatMap(r => r.citations.map(c => c.position))
 
-    if (positions.length === 0) return '-'
+    const validPositions = positions.filter((p): p is number => p !== undefined)
+    if (validPositions.length === 0) return '-'
 
-    const avg = positions.reduce((a, b) => a + b, 0) / positions.length
+    const avg = validPositions.reduce((a, b) => a + b, 0) / validPositions.length
     return avg.toFixed(1)
 }

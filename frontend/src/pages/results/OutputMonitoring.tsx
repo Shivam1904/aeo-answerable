@@ -6,8 +6,10 @@ import {
     PromptTemplates,
     MultiEngineResponse,
     HistorySidebar,
-    CompetitorAnalysis
+    CompetitorAnalysis,
+    CompetitorSelector
 } from '../../components/output-monitoring'
+import { CompetitiveResultsDisplay } from '../../components/output-monitoring/CompetitiveResultsDisplay'
 import { api } from '../../api'
 
 interface OutputMonitoringProps {
@@ -29,6 +31,8 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
     // Unified State
     const [query, setQuery] = useState('')
     const [selectedEngines, setSelectedEngines] = useState<string[]>(['openai', 'anthropic', 'gemini'])
+    const [selectedCompetitors, setSelectedCompetitors] = useState<string[]>([])
+    const [competitiveResults, setCompetitiveResults] = useState<any | null>(null)
 
     // Extract brand name from URL
     const brandName = useMemo(() => {
@@ -74,16 +78,22 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
         setLoadingStage('Initializing analysis...')
         setError(null)
         setResults(null)
+        setCompetitiveResults(null)
 
         try {
-            // Pass brand profile if available for better insights
-            const profile = analysisResult?.profile
-
-            setLoadingStage('Fetching AI responses...')
-            const data = await api.monitoring.query(queryText, targetUrl, engines, profile, productId)
-
-            setLoadingStage('Processing insights...')
-            setResults(data)
+            // Competitive Flow
+            if (selectedCompetitors.length > 0) {
+                setLoadingStage('Running competitive analysis...')
+                const targetUrls = [targetUrl, ...selectedCompetitors]
+                const data = await api.monitoring.competitiveQuery(queryText, targetUrls, engines, productId)
+                setCompetitiveResults(data)
+            } else {
+                // Standard Flow
+                const profile = analysisResult?.profile
+                setLoadingStage('Fetching AI responses...')
+                const data = await api.monitoring.query(queryText, targetUrl, engines, profile, productId)
+                setResults(data)
+            }
         } catch (e: any) {
             setError(e.message)
         } finally {
@@ -181,6 +191,20 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
                             selectedEngines={selectedEngines}
                             setSelectedEngines={setSelectedEngines}
                         />
+
+                        {productId && (
+                            <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                                <CompetitorSelector
+                                    productId={productId}
+                                    selectedCompetitors={selectedCompetitors}
+                                    onToggle={(domain) => {
+                                        setSelectedCompetitors(prev =>
+                                            prev.includes(domain) ? prev.filter(d => d !== domain) : [...prev, domain]
+                                        )
+                                    }}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Error Display */}
@@ -191,7 +215,14 @@ export function OutputMonitoring({ targetUrl, pageContent: _pageContent, pageTit
                     )}
 
                     {/* Results Area */}
-                    {results ? (
+                    {competitiveResults ? (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <CompetitiveResultsDisplay
+                                results={competitiveResults}
+                                yourUrl={targetUrl}
+                            />
+                        </div>
+                    ) : results ? (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <ResultsDisplay results={results} />
                         </div>

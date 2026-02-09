@@ -37,7 +37,6 @@ export function analyzeSentiment(text: string): { score: number; label: InsightD
 export function extractCompetitors(text: string): string[] {
     // Very naive extraction: looks for Capitalized words after "vs", "like", "alternative to"
     // In a real app, this would be backend NLP.
-    const lower = text.toLowerCase()
     const competitors = new Set<string>()
 
     // Mock list of common tech competitors to check for
